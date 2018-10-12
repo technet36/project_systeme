@@ -88,7 +88,6 @@ int nextStair(int position, int stairsEntrancePosition, int firstStair){
 }
 
 /**
- *
  * @param game
  * @param position
  * @param dice
@@ -98,7 +97,7 @@ int nextStair(int position, int stairsEntrancePosition, int firstStair){
 int isThereObstacle(game_t *game, int position, int dice, int stairsEntrancePosition) {
     int i;
 
-    for (i = 1 ; i < dice; i = i+1) {
+    for (i = 1 ; i < dice; ++i) {
         if(game->board[(i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER)].id_player != -1 || (i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER) == stairsEntrancePosition){//there is an obstacle
             return position + 2 * i - dice;
         }
@@ -258,8 +257,15 @@ int play(game_t* theGame, int idPlayer, int idHorse, int dice) {
             goToSquare(theGame, idPlayer, idHorse, NB_SQUARE_BY_PLAYER*idPlayer);
         }
     } else if (position == stairsEntrancePosition || position >= firstStair) {//######################## wanna go on the stairs
+
         int newPosition = nextStair(position, stairsEntrancePosition, firstStair);
-        goToSquare(theGame, idPlayer, idHorse, newPosition);
+
+        if(newPosition == -2 && dice == 6 ){
+            goToSquare(theGame, idPlayer, idHorse, newPosition);
+        } else if (dice == (newPosition - firstStair + 1)){
+            goToSquare(theGame, idPlayer, idHorse, newPosition);
+        }
+
     } else {//########################################################################################## casual case on the race
         int nextPosition = isThereObstacle(theGame, position, dice, stairsEntrancePosition);
 
