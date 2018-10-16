@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <unistd.h>
+
 #include "library.h"
 
 
@@ -14,13 +14,14 @@ int main(int argc, char* argv[]) {
 
     printf("Start 4 players ");
     for (i = 0; i < NB_PLAYER; ++i) {
-        execlp("./player","./player",(char)i,(char)NULL);
+        //execlp("./player","./player",(char)i,(char)NULL);
+
     }
 
 
 
     do{
-        display(&theGame);
+        displayGame(&theGame);
         printf("%s : ",theGame.players[nextPlayer].name);
         roll = diceRoll();
         printf(" Roll : %d\nChoose the horse : ",roll);
@@ -31,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     }while((nextPlayer = play(&theGame, nextPlayer, input, roll))!= -1);
 
-    display(&theGame);
+    displayGame(&theGame);
 
     return 0;
 }
