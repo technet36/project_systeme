@@ -29,9 +29,10 @@ void displayGame(game_t* board);
  */
 void displayPlayer(player_t* player);
 
-void displayBoardFromPlayersArray(player_t *players);
+void displayBoardFromPlayersArray(player_t *players);//todo
 
 
+int sendDiceRoll(int dice, int nextPlayer);//todo
 
 int sendHorseServer(int idHorse, player_t* me);
 
@@ -42,6 +43,8 @@ int sendMessageToNextPlayer(int pid,player_t* playerArray, player_t* me);
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
 
 messageInfo_t waitForMessage(void* data, player_t* me);
+
+messageInfo_t waitForPlayerMessageToServer(void* data);
 
 
 #endif //PROJECT_SYSTEME_IO_H

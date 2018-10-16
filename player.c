@@ -20,6 +20,7 @@ int main(int argc, char* argv[]){
     player_t* allPlayer;
     int godFather;
     int temp;
+    int error =0;
     messageInfo_t message;
     void* data;
     if (argc==3){
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]){
             allPlayer = data;
             if(message.pid == godFather) {
                 printf("\nNew position\n");
-                sendMessageToNextPlayer( getpid(), allPlayer, &me);
+                error = sendMessageToNextPlayer( getpid(), allPlayer, &me);
 
             }else if(message.pid == getpid()) {
                 printf("\nLoopback\n");
@@ -51,7 +52,7 @@ int main(int argc, char* argv[]){
 
             }else {
                 printf("\nNew position\n");
-                sendMessageToNextPlayer( message.pid, allPlayer, &me);
+                error = sendMessageToNextPlayer( message.pid, allPlayer, &me);
             }
 
         }else if(message.action == DICE_ROLL ){//data is the result of the dice roll
@@ -59,10 +60,10 @@ int main(int argc, char* argv[]){
             getchar();
             printf("\nYou've rolled a %d, choose a horse : ",data);
             scanf("%d",&temp);
-            sendHorseServer( temp, &me);
+            error = sendHorseServer( temp, &me);
 
         }
-    }while (!me.has_ended);
+    }while (!me.has_ended && error ==0);
 
 
     return 0;

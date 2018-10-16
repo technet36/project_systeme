@@ -7,21 +7,15 @@
 //#############################
 
 
-void initPlayers(player_t *players) {//todo : make the name a fixed size ( improve performance and io)
-    int i ,j;
-    //char* playerName[4];
-
-    //sprintf(playerName[0],"toto_0");//should used snprintf at least
-    for (i = 0; i < NB_PLAYER; ++i) {
-        players[i].has_ended = false;
-        sprintf(players[i].name , "toto_%d",i);
-        //players[i].name = playerName[i];
-        players[i].id = i;
-        players[i].nb_coups=0;
-        for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
-            players[i].stable[j].id = j;
-            players[i].stable[j].position = -1;
-        }
+void copyPlayer(player_t *players, player_t* playerSrc) {
+    int i = playerSrc->id,j;
+    players[i].has_ended = playerSrc->has_ended;
+    sprintf(players[i].name , "%s",playerSrc->name);
+    players[i].id = i;
+    players[i].nb_coups = playerSrc->nb_coups;
+    for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
+        players[i].stable[j].id = playerSrc->stable[j].id;
+        players[i].stable[j].position = playerSrc->stable[j].position;
     }
 }
 
@@ -103,7 +97,7 @@ int init(game_t* myGame) {
     srand((unsigned int)time(0));//seed for rand()
     myGame->has_ended = false;
     int i;
-    initPlayers(myGame->players);
+    //initPlayers(myGame->players);
     for (i = 0; i < NB_SQUARE_BOARD; ++i) {
         myGame->board[i].id_horse = -1;
         myGame->board[i].id_player = -1;

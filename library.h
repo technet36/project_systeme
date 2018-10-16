@@ -6,7 +6,7 @@
 #include "structures.h"
 #include "io.h"
 
-void initPlayers(player_t *players);
+void copyPlayer(player_t *players, player_t* playerSrc);
 
 int nextStair(int position, int stairsEntrancePosition, int firstStair);
 

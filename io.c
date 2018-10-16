@@ -133,6 +133,7 @@ int sendPlayerToServer(player_t* me){
 
     f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), NEW_PLAYER, f, me, sizeof(player_t));
+    printf("P%d sent player %d",me->id,i);
     close(f);
     return i;
 }
@@ -178,16 +179,13 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
     if (me->id==0) {
         fileDescriptorParentName = "ServerToP0";
         fileDescriptorSiblingName = "P3ToP0";
-    }
-    if (me->id==1) {
+    }else if (me->id==1) {
         fileDescriptorParentName = "ServerToP1";
         fileDescriptorSiblingName = "P0ToP1";
-    }
-    if (me->id==2) {
+    } else if (me->id==2) {
         fileDescriptorParentName = "ServerToP2";
         fileDescriptorSiblingName = "P1ToP2";
-    }
-    if (me->id==3) {
+    }else if (me->id==3) {
         fileDescriptorParentName = "ServerToP3";
         fileDescriptorSiblingName = "P2ToP3";
     }
@@ -202,7 +200,7 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
             temp = 1;
             f = fileFromParent;
 
-        } else if(read(f,&sizeToRead, sizeof(int) ) != -1){
+        } else if(read(fileFromSibling,&sizeToRead, sizeof(int) ) != -1){
             temp = 1;
             f = fileFromSibling;
         }
@@ -218,6 +216,51 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
 
     if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
 
+
+    return message;
+}
+
+messageInfo_t waitForPlayerMessageToServer(void* data){
+
+    int f, sizeToRead, temp = 0;
+    messageInfo_t message;
+    message.action = -1;
+    message.pid = -1;
+
+
+    int fileFromP0 = open("P0ToServer",  O_RDONLY );//need the file
+    int fileFromP1 = open("P1ToServer",  O_RDONLY );//need the file
+    int fileFromP2 = open("P2ToServer",  O_RDONLY );//need the file
+    int fileFromP3 = open("P3ToServer",  O_RDONLY );//need the file
+
+    while(temp==0){
+        if(read(fileFromP0,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromP0;
+
+        } else if(read(fileFromP1,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromP1;
+
+        }else if(read(fileFromP2,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromP2;
+
+        }else if(read(fileFromP3,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromP3;
+        }
+    }
+    data = (void*)malloc(sizeToRead);
+
+    read(f, &message.pid, sizeof(int));
+    read(f, &message.action, sizeof(int));
+    read(f, data, sizeToRead);
+
+    close(fileFromP0);
+    close(fileFromP1);
+    close(fileFromP2);
+    close(fileFromP3);
 
     return message;
 }
