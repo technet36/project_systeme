@@ -5,43 +5,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/fcntl.h>
+
+
+typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION_T;
 
 typedef struct {
-    int id;
-    //int size;
-    void* data;
+    int pid;
     int action;
-} message_t;
+}messageInfo_t;
 
-typedef struct {
 
-} frame_t;
 
-/*
- * FRAME STRUCT
- *
- */
-
-char* messageToFrame(message_t message);
-
-message_t frameToMessage(char* frame);
+int displayError(error_t* error);
 
 /**
  * display the game board
  */
 void displayGame(game_t* board);
 
-void displayBoardFromPlayersArray(player_t *players);
-
 /**
  * display the stats of the specified player
  */
 void displayPlayer(player_t* player);
 
-int displayError(error_t* error);
+void displayBoardFromPlayersArray(player_t *players);
 
 
-char* printPlayer(player_t* player, char* printTo);
+
+int sendHorseServer(int idHorse, player_t* me);
+
+int sendPlayerToServer(player_t* me);
+
+int sendMessageToNextPlayer(int pid,player_t* playerArray, player_t* me);
+
+int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
+
+messageInfo_t waitForMessage(void* data, player_t* me);
 
 
 #endif //PROJECT_SYSTEME_IO_H

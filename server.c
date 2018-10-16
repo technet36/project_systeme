@@ -1,5 +1,6 @@
 #include <stdio.h>
-
+#include "structures.h"
+#include "io.h"
 #include "library.h"
 
 
@@ -14,7 +15,7 @@ int main(int argc, char* argv[]) {
 
     printf("Start 4 players ");
     for (i = 0; i < NB_PLAYER; ++i) {
-        //execlp("./player","./player",(char)i,(char)NULL);
+        execlp("./player","./player",(char)i,(char)NULL);
 
     }
 

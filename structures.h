@@ -35,7 +35,7 @@ typedef struct {
 
 typedef  struct {
     int id;
-    char* name;
+    char name[10];
     horse_t stable[NB_HORSE_BY_PLAYER];
     int nb_coups;
     bool has_ended;

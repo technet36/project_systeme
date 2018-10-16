@@ -7,16 +7,15 @@
 //#############################
 
 
-void initPlayers(player_t *players) {
+void initPlayers(player_t *players) {//todo : make the name a fixed size ( improve performance and io)
     int i ,j;
-    char* playerName[4];
-    playerName[0] = "toto_0";
-    playerName[1] = "toto_1";
-    playerName[2] = "toto_2";
-    playerName[3] = "toto_3";
+    //char* playerName[4];
+
+    //sprintf(playerName[0],"toto_0");//should used snprintf at least
     for (i = 0; i < NB_PLAYER; ++i) {
         players[i].has_ended = false;
-        players[i].name = playerName[i];
+        sprintf(players[i].name , "toto_%d",i);
+        //players[i].name = playerName[i];
         players[i].id = i;
         players[i].nb_coups=0;
         for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {

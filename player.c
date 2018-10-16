@@ -1,33 +1,69 @@
 #include "player.h"
 
 
-int initPlayer(int idPlayer){
-    player_t newPlayer;
+int initPlayer(int idPlayer, player_t* me){
     printf("\nHi there new player\nWhat is you name ? : \n");
-    scanf("%s",newPlayer.name);
+    scanf("%s",me->name);
     int j;
-    newPlayer.has_ended = false;
-    newPlayer.id = idPlayer;
-    newPlayer.nb_coups=0;
+    me->has_ended = false;
+    me->id = idPlayer;
+    me->nb_coups=0;
     for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
-        newPlayer.stable[j].id = j;
-        newPlayer.stable[j].position = -1;
+        me->stable[j].id = j;
+        me->stable[j].position = -1;
     }
-    printPlayer(&newPlayer,NULL);
     return 0;
 }
 
 int main(int argc, char* argv[]){
+    player_t me;
+    player_t* allPlayer;
+    int godFather;
+    int temp;
+    messageInfo_t message;
+    void* data;
+    if (argc==3){
+        printf("\nThis is player %s\n",argv[1]);
+        initPlayer(atoi(argv[1]), &me);
+        godFather = atoi(argv[2]);
 
-    printf("hello world\n");
-    if (argc==2){
-        printf("This is player %s",argv[1]);
+    }else{
+        godFather = getppid();
+        initPlayer(2, &me);
+
     }
-    initPlayer(1);
+
+
+    sendPlayerToServer(&me);
+
+
+    do{
+        message = waitForMessage(data, &me);
+        if (message.action == NEW_POS){//data is the array of all players
+            allPlayer = data;
+            if(message.pid == godFather) {
+                printf("\nNew position\n");
+                sendMessageToNextPlayer( getpid(), allPlayer, &me);
+
+            }else if(message.pid == getpid()) {
+                printf("\nLoopback\n");
+                //todo : sig to server
+
+            }else {
+                printf("\nNew position\n");
+                sendMessageToNextPlayer( message.pid, allPlayer, &me);
+            }
+
+        }else if(message.action == DICE_ROLL ){//data is the result of the dice roll
+            printf("\nIt's your turn %s, press ENTER to roll the dice : ",me.name);
+            getchar();
+            printf("\nYou've rolled a %d, choose a horse : ",data);
+            scanf("%d",&temp);
+            sendHorseServer( temp, &me);
+
+        }
+    }while (!me.has_ended);
+
 
     return 0;
-}
-
-void* player(char* frame){
-
 }

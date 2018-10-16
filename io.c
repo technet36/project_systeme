@@ -1,4 +1,3 @@
-#include <sys/fcntl.h>
 #include "io.h"
 
 
@@ -10,7 +9,6 @@ int displayError(error_t *error) {
     }
     return error->errCode;
 }
-
 
 void displayGame(game_t *theGame) {
     int i, j;
@@ -79,86 +77,183 @@ void displayGame(game_t *theGame) {
     }
 }
 
-
-void diplayPlayer(player_t *player) {
+void displayPlayer(player_t *player) {
     int i, j,k ,l;
     printf("\n");
-
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("id:\t\t\t%d\t\t\t\t",player[i].id);
-
-    }
+        printf("id:\t\t\t%d\t\t\t\t",player->id);
     printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("name:\t%s\t\t\t\t",player[i].name);
-    }
+        printf("name:\t%s\t\t\t\t",player->name);
     printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("nb coup:\t%d\t\t\t\t",player[i].nb_coups);
-    }
+        printf("nb coup:\t%d\t\t\t\t",player->nb_coups);
     printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("has ended:\t%d\t\t\t\t",player[i].has_ended);
-    }
+        printf("has ended:\t%d\t\t\t\t",player->has_ended);
     printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
         printf("stable:\t\t\t\t\t\t");
-    }
     printf("\n");
     for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-        for (j = 0; j < NB_PLAYER; ++j) {
-            printf("\tid:\t\t%d\t\t\t\t",player[j].stable[i].id);
-        }
+            printf("\tid:\t\t%d\t\t\t\t",player->stable[i].id);
         printf("\n");
-        for (j = 0; j < NB_PLAYER; ++j) {
-            printf("\tpos:\t%d\t\t\t\t",player[j].stable[i].position);
-        }
+            printf("\tpos:\t%d\t\t\t\t",player->stable[i].position);
         printf("\n\n");
     }
     printf("\n");
 
 }
 
+void displayBoardFromPlayersArray(player_t *players) {
 
-char* printPlayer(player_t *player, char* printTo) {
+}
 
 
-    int f = open("file.txt",  O_WRONLY );
 
-/* print some text */
-    write(f,player, sizeof(player_t));
+int sendHorseServer(int idHorse, player_t* me){
+    int f , i;
+    char* fileDescriptorName;
 
+    if (me->id==0) fileDescriptorName = "P0ToServer";
+    if (me->id==1) fileDescriptorName = "P1ToServer";
+    if (me->id==2) fileDescriptorName = "P2ToServer";
+    if (me->id==3) fileDescriptorName = "P3ToServer";
+
+    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    i = sendMessage(getpid(), CHOOSE_HORSE, f, &idHorse, sizeof(int));
     close(f);
 
+    return i;
+}
+
+int sendPlayerToServer(player_t* me){
+    int f , i;
+    char* fileDescriptorName;
+
+    if (me->id==0) fileDescriptorName = "P0ToServer";
+    if (me->id==1) fileDescriptorName = "P1ToServer";
+    if (me->id==2) fileDescriptorName = "P2ToServer";
+    if (me->id==3) fileDescriptorName = "P3ToServer";
+
+    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    i = sendMessage(getpid(), NEW_PLAYER, f, me, sizeof(player_t));
+    close(f);
+    return i;
+}
+
+int sendMessageToNextPlayer(int pid, player_t* playerArray, player_t* me){
+    char* fileDescriptorName;
+    int f, i;
+
+    if (me->id==0) fileDescriptorName = "P0ToP1";
+    if (me->id==1) fileDescriptorName = "P1ToP2";
+    if (me->id==2) fileDescriptorName = "P2ToP3";
+    if (me->id==3) fileDescriptorName = "P3ToP0";
+
+
+    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    i = sendMessage(pid, NEW_POS, f, playerArray, sizeof(player_t) * NB_PLAYER);
+
+    close(f);
+    return i;
 
 }
 
-player_t readPlayer (){}
+int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData) {
+    int bytesRead =0;
+    bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
+    bytesRead += write(fileDescriptor, &pid, sizeof(int));
+    bytesRead += write(fileDescriptor, &action , sizeof(int));
+    bytesRead += write(fileDescriptor, data, sizeOfData);
 
-char *messageToFrame(message_t message) {
-    return NULL;
+    return (bytesRead == (sizeOfData + 3* sizeof(int) ) ) -1;//return -1 if error
 }
 
-message_t frameToMessage(char* frame) {
-    message_t message;
-    int size ;
-    int id;
+messageInfo_t waitForMessage(void* data, player_t* me) {
+    int f, sizeToRead, temp = 0;
+    messageInfo_t message;
+    message.action = -1;
+    message.pid = -1;
 
-    //char tempSize[3] = {frame[0], frame[]};
+
+    char* fileDescriptorParentName;
+    char* fileDescriptorSiblingName;
+
+    if (me->id==0) {
+        fileDescriptorParentName = "ServerToP0";
+        fileDescriptorSiblingName = "P3ToP0";
+    }
+    if (me->id==1) {
+        fileDescriptorParentName = "ServerToP1";
+        fileDescriptorSiblingName = "P0ToP1";
+    }
+    if (me->id==2) {
+        fileDescriptorParentName = "ServerToP2";
+        fileDescriptorSiblingName = "P1ToP2";
+    }
+    if (me->id==3) {
+        fileDescriptorParentName = "ServerToP3";
+        fileDescriptorSiblingName = "P2ToP3";
+    }
 
 
-    size = (int)(frame[0])*100;
-    size += (int)(frame[1])*10;
-    size += (int)(frame[2]);
+
+    int fileFromParent = open(fileDescriptorParentName,  O_RDONLY );//need the file
+    int fileFromSibling= open(fileDescriptorSiblingName,  O_RDONLY );//need the file
+
+    while(temp==0){
+        if(read(fileFromParent,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromParent;
+
+        } else if(read(f,&sizeToRead, sizeof(int) ) != -1){
+            temp = 1;
+            f = fileFromSibling;
+        }
+    }
+    data = (void*)malloc(sizeToRead);
+
+    read(f, &message.pid, sizeof(int));
+    read(f, &message.action, sizeof(int));
+    read(f, data, sizeToRead);
+
+    close(fileFromParent);
+    close(fileFromSibling);
+
+    if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
 
 
     return message;
 }
 
-void displayBoardFromPlayersArray(player_t *players) {
 
-}
+
+
+/*
 
 void testParseurs(){
 
 }
+
+int printPlayer(player_t *player, char* printTo) {
+    int f = open("filsToPere.txt",  O_WRONLY | O_APPEND | O_TRUNC | O_CREAT); // should not need the file but does in fact
+
+    if(write(f,player, sizeof(player_t)) == -1){
+        perror("Write");
+        close(f);
+        return -1;
+    }
+    close(f);
+
+    return 0;
+
+}
+
+int readPlayer (player_t* newPlayer){
+    int f = open("filsToPere.txt",  O_RDONLY );//need the file
+
+    if (read(f,newPlayer, sizeof(player_t) ) == -1){
+        perror("read");
+        close(f);
+        return -1;
+    }
+    close(f);
+    return 0;
+}
+*/
