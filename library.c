@@ -11,7 +11,7 @@ void copyPlayer(player_t *players, player_t* playerSrc) {
 
     int i = playerSrc->id,j;
 
-    printf("id = =%d\n",i);
+    //printf("id = =%d\n",i);
 
     players[i].has_ended = playerSrc->has_ended;
 

@@ -41,7 +41,7 @@ int main(int argc, char* argv[]){
 
     do{
         printf("\nwait for message press enter to resume\n");
-        getchar();
+        //getchar();
         message = waitForMessage(data, &me);
         if (message.action == NEW_POS){//data is the array of all players
             allPlayer = data;

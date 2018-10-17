@@ -108,14 +108,8 @@ void displayBoardFromPlayersArray(player_t *players) {
 
 int sendHorseServer(int idHorse, player_t* me){
     int f , i;
-    char* fileDescriptorName;
 
-    if (me->id==0) fileDescriptorName = "P0ToServer";
-    if (me->id==1) fileDescriptorName = "P1ToServer";
-    if (me->id==2) fileDescriptorName = "P2ToServer";
-    if (me->id==3) fileDescriptorName = "P3ToServer";
-
-    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    f = open("PToServer",  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), CHOOSE_HORSE, f, &idHorse, sizeof(int));
     close(f);
 
@@ -124,18 +118,13 @@ int sendHorseServer(int idHorse, player_t* me){
 
 int sendPlayerToServer(player_t* me){
     int f , i;
-    char* fileDescriptorName;
-    printf("\nI'm in %s",__func__);
+    //printf("\nI'm in %s",__func__);
     displayPlayer(me);
 
-    if (me->id==0) fileDescriptorName = "P0ToServer";
-    if (me->id==1) fileDescriptorName = "P1ToServer";
-    if (me->id==2) fileDescriptorName = "P2ToServer";
-    if (me->id==3) fileDescriptorName = "P3ToServer";
 
-    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    f = open("PToServer",  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), NEW_PLAYER, f, me, sizeof(player_t));
-    printf("\nP%d sent player %s\n",me->id,me->name);
+    //printf("\nP%d sent player %s\n",me->id,me->name);
     close(f);
     return i;
 }
@@ -159,7 +148,7 @@ int sendMessageToNextPlayer(int pid, player_t* playerArray, player_t* me){
 }
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData) {
-    printf("\nI'm in %s",__func__);
+    //printf("\nI'm in %s",__func__);
 
     int bytesRead =0;
     bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
@@ -225,61 +214,48 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
     return message;
 }
 
+
+
+
+
+int sendDiceRoll(int dice, int nextPlayer){
+    char* fileDescriptorName;
+    int f;
+
+    if (nextPlayer==0) fileDescriptorName = "ServerToP0";
+    if (nextPlayer==1) fileDescriptorName = "ServerToP1";
+    if (nextPlayer==2) fileDescriptorName = "ServerToP2";
+    if (nextPlayer==3) fileDescriptorName = "ServerToP3";
+
+
+    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
+    i = sendMessage(getpid(), DICE_ROLL, f, dice, sizeof(int));
+
+    close(f);
+    return i;
+
+}
+
 messageInfo_t waitForPlayerMessageToServer(void* data){
 
     int f, sizeToRead, i, temp = 0;
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
-    char* fileName;
 
 
-    int fileFromP0 = open("P0ToServer",  O_RDONLY );//need the file
-    int fileFromP1 = open("P1ToServer",  O_RDONLY );//need the file
-    int fileFromP2 = open("P2ToServer",  O_RDONLY );//need the file
-    int fileFromP3 = open("P3ToServer",  O_RDONLY );//need the file
+    int fileToServer = open("PToServer",  O_RDONLY );//need the file
 
-    while(temp==0){
-        if((i=read(fileFromP0,&sizeToRead, sizeof(int) )) > 0){
-            temp = 1;
-            f = fileFromP0;
-            fileName = "P0ToServer";
-      //      printf("\nread in P0ToServer, read %d bytes \n",i);
+    while(read(fileToServer,&sizeToRead, sizeof(int) )<=0){ }
 
-        } else if(( i = read(fileFromP1,&sizeToRead, sizeof(int) )) > 0){
-            temp = 1;
-            f = fileFromP1;
-            fileName = "P1ToServer";
-    //        printf("\nread in P1ToServer, read %d bytes \n",i);
+    i = read(fileToServer, &message.pid, sizeof(int));
+    i = read(fileToServer, &message.action, sizeof(int));
+    i = read(fileToServer, data, sizeToRead);
+    close(fileToServer);
 
-        }else if(( i = read(fileFromP2,&sizeToRead, sizeof(int) ) ) > 0){
-            temp = 1;
-            f = fileFromP2;
-            fileName = "P2ToServer";
-  //          printf("\nread in P2ToServer, read %d bytes \n",i);
-
-        }else if(( i = read(fileFromP3,&sizeToRead, sizeof(int) ) ) > 0){
-            temp = 1;
-            f = fileFromP3;
-            fileName = "P3ToServer";
-//            printf("\nread in P3ToServer, read %d bytes , value read: %d\n",i, sizeToRead);
-        }
-    }
-    //data = (void*)malloc(sizeToRead);
-    //message.data = (void*)malloc(sizeToRead);
-
-    i = read(f, &message.pid, sizeof(int));
-    i = read(f, &message.action, sizeof(int));
-    i = read(f, data, sizeToRead);
-
-    close(f);
-    open(fileName, O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
-
-
-    close(fileFromP0);
-    close(fileFromP1);
-    close(fileFromP2);
-    close(fileFromP3);
+    //to empty the file
+    fileToServer = open("PToServer", O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
+    close(fileToServer);
 
     //displayPlayer(data);
 

@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
 
             exit(-1);
         } else{
-            printf("exec player %d\n",i);
-            sleep(1);
+            //printf("exec player %d\n",i);
+            //sleep(1);
         }
     }
 
@@ -44,21 +44,15 @@ int main(int argc, char* argv[]) {
             printf("\ngot player %d : %s\n",((player_t*)data)->id,((player_t*)data)->name);
             ++i;
         }
-        printf("\n\t wait for player press enter");
-        //getchar();
     }
-
-    //if (test()!=0)return 0;
-displayPlayer(&theGame.players[0]);
-displayPlayer(&theGame.players[1]);
-displayPlayer(&theGame.players[2]);
-displayPlayer(&theGame.players[3]);
 
 
     do{
         displayGame(&theGame);
         printf("%s : ",theGame.players[nextPlayer].name);
         roll = diceRoll();
+
+
         printf(" Roll : %d\nChoose the horse : ",roll);
 
         scanf("%d",&input);
