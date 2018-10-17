@@ -125,6 +125,8 @@ int sendHorseServer(int idHorse, player_t* me){
 int sendPlayerToServer(player_t* me){
     int f , i;
     char* fileDescriptorName;
+    printf("\nI'm in %s",__func__);
+    displayPlayer(me);
 
     if (me->id==0) fileDescriptorName = "P0ToServer";
     if (me->id==1) fileDescriptorName = "P1ToServer";
@@ -133,7 +135,7 @@ int sendPlayerToServer(player_t* me){
 
     f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), NEW_PLAYER, f, me, sizeof(player_t));
-    printf("P%d sent player %d",me->id,i);
+    printf("\nP%d sent player %s\n",me->id,me->name);
     close(f);
     return i;
 }
@@ -157,6 +159,8 @@ int sendMessageToNextPlayer(int pid, player_t* playerArray, player_t* me){
 }
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData) {
+    printf("\nI'm in %s",__func__);
+
     int bytesRead =0;
     bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
     bytesRead += write(fileDescriptor, &pid, sizeof(int));
@@ -196,16 +200,17 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
     int fileFromSibling= open(fileDescriptorSiblingName,  O_RDONLY );//need the file
 
     while(temp==0){
-        if(read(fileFromParent,&sizeToRead, sizeof(int) ) != -1){
+        if(read(fileFromParent,&sizeToRead, sizeof(int) ) > 0){
             temp = 1;
             f = fileFromParent;
 
-        } else if(read(fileFromSibling,&sizeToRead, sizeof(int) ) != -1){
+        } else if(read(fileFromSibling,&sizeToRead, sizeof(int) ) > 0){
             temp = 1;
             f = fileFromSibling;
         }
     }
-    data = (void*)malloc(sizeToRead);
+    //data = (void*)malloc(sizeToRead);
+    //message.data = (void*)malloc(sizeToRead);
 
     read(f, &message.pid, sizeof(int));
     read(f, &message.action, sizeof(int));
@@ -222,10 +227,11 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
 
 messageInfo_t waitForPlayerMessageToServer(void* data){
 
-    int f, sizeToRead, temp = 0;
+    int f, sizeToRead, i, temp = 0;
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
+    char* fileName;
 
 
     int fileFromP0 = open("P0ToServer",  O_RDONLY );//need the file
@@ -234,33 +240,48 @@ messageInfo_t waitForPlayerMessageToServer(void* data){
     int fileFromP3 = open("P3ToServer",  O_RDONLY );//need the file
 
     while(temp==0){
-        if(read(fileFromP0,&sizeToRead, sizeof(int) ) != -1){
+        if((i=read(fileFromP0,&sizeToRead, sizeof(int) )) > 0){
             temp = 1;
             f = fileFromP0;
+            fileName = "P0ToServer";
+      //      printf("\nread in P0ToServer, read %d bytes \n",i);
 
-        } else if(read(fileFromP1,&sizeToRead, sizeof(int) ) != -1){
+        } else if(( i = read(fileFromP1,&sizeToRead, sizeof(int) )) > 0){
             temp = 1;
             f = fileFromP1;
+            fileName = "P1ToServer";
+    //        printf("\nread in P1ToServer, read %d bytes \n",i);
 
-        }else if(read(fileFromP2,&sizeToRead, sizeof(int) ) != -1){
+        }else if(( i = read(fileFromP2,&sizeToRead, sizeof(int) ) ) > 0){
             temp = 1;
             f = fileFromP2;
+            fileName = "P2ToServer";
+  //          printf("\nread in P2ToServer, read %d bytes \n",i);
 
-        }else if(read(fileFromP3,&sizeToRead, sizeof(int) ) != -1){
+        }else if(( i = read(fileFromP3,&sizeToRead, sizeof(int) ) ) > 0){
             temp = 1;
             f = fileFromP3;
+            fileName = "P3ToServer";
+//            printf("\nread in P3ToServer, read %d bytes , value read: %d\n",i, sizeToRead);
         }
     }
-    data = (void*)malloc(sizeToRead);
+    //data = (void*)malloc(sizeToRead);
+    //message.data = (void*)malloc(sizeToRead);
 
-    read(f, &message.pid, sizeof(int));
-    read(f, &message.action, sizeof(int));
-    read(f, data, sizeToRead);
+    i = read(f, &message.pid, sizeof(int));
+    i = read(f, &message.action, sizeof(int));
+    i = read(f, data, sizeToRead);
+
+    close(f);
+    open(fileName, O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
+
 
     close(fileFromP0);
     close(fileFromP1);
     close(fileFromP2);
     close(fileFromP3);
+
+    //displayPlayer(data);
 
     return message;
 }

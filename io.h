@@ -13,6 +13,7 @@ typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION
 typedef struct {
     int pid;
     int action;
+    void* data;
 }messageInfo_t;
 
 

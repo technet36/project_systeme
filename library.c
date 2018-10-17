@@ -8,11 +8,19 @@
 
 
 void copyPlayer(player_t *players, player_t* playerSrc) {
+
     int i = playerSrc->id,j;
+
+    printf("id = =%d\n",i);
+
     players[i].has_ended = playerSrc->has_ended;
+
     sprintf(players[i].name , "%s",playerSrc->name);
+
     players[i].id = i;
+
     players[i].nb_coups = playerSrc->nb_coups;
+
     for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
         players[i].stable[j].id = playerSrc->stable[j].id;
         players[i].stable[j].position = playerSrc->stable[j].position;

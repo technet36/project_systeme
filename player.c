@@ -34,11 +34,14 @@ int main(int argc, char* argv[]){
 
     }
 
-
+    printf("\nsend player to server\n");
     sendPlayerToServer(&me);
+    printf("\nplayer sent to server\n");
 
 
     do{
+        printf("\nwait for message press enter to resume\n");
+        getchar();
         message = waitForMessage(data, &me);
         if (message.action == NEW_POS){//data is the array of all players
             allPlayer = data;
