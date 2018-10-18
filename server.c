@@ -7,7 +7,7 @@
 
 int main(int argc, char* argv[]) {
 
-    int i, roll, nextPlayer = 0, input, temp = 0, myAction;
+    int i, roll, nextPlayer = 0, input, temp = 0, myAction, serverPid = getpid();
     char  myCommand[30];
 
     game_t theGame;
@@ -16,17 +16,13 @@ int main(int argc, char* argv[]) {
     player_t* tempPlayer;
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
 
-    printf("Start 4 players \n");
     for (i = 0; i < NB_PLAYER; ++i) {
         if(fork()==0){
-            sprintf(myCommand, "./player %d %d", i,getpid());
+            sprintf(myCommand, "./player %d %d", i, serverPid);
             execlp("/usr/bin/gnome-terminal", "gnome-terminal", "-e", myCommand ,NULL);
-            //execl("/usr/bin/xterm", "xterm", NULL);
 
             exit(-1);
         } else{
-            //printf("exec player %d\n",i);
-            //sleep(1);
         }
     }
 
@@ -34,11 +30,6 @@ int main(int argc, char* argv[]) {
 
     while (i<NB_PLAYER){
         message = waitForPlayerMessageToServer(data);
-
-
-        //printf("\nmessage.action : %d, message.pid : %d\n",message.action, message.pid);
-
-
         if(message.action == NEW_PLAYER){
             copyPlayer(theGame.players, data);
             printf("\ngot player %d : %s\n",((player_t*)data)->id,((player_t*)data)->name);
@@ -49,17 +40,19 @@ int main(int argc, char* argv[]) {
 
     do{
         displayGame(&theGame);
-        printf("%s : ",theGame.players[nextPlayer].name);
+        broadCastPlayerArray(theGame.players, nextPlayer);
+
+        printf("\t%s : ",theGame.players[nextPlayer].name);
         roll = diceRoll();
 
+        sendDiceRoll(&roll,nextPlayer);
 
-        printf(" Roll : %d\nChoose the horse : ",roll);
+        while( (message = waitForPlayerMessageToServer(data)).action != CHOOSE_HORSE){}
+        //data is the horse choosen
 
-        scanf("%d",&input);
+        printf("\nhorse choosen %d",*(int*)data);
 
-        //diplayPlayer(theGame.players);
-
-    }while((nextPlayer = play(&theGame, nextPlayer, input, roll))!= -1);
+    }while((nextPlayer = play(&theGame, nextPlayer, *(int*)data, roll))!= -1);
 
     displayGame(&theGame);
 

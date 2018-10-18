@@ -22,52 +22,51 @@ int main(int argc, char* argv[]){
     int temp;
     int error =0;
     messageInfo_t message;
-    void* data;
+    void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
+
+
     if (argc==3){
+        godFather = atoi(argv[2]);
         printf("\nThis is player %s\n",argv[1]);
         initPlayer(atoi(argv[1]), &me);
-        godFather = atoi(argv[2]);
 
     }else{
+        printf("\nerror\n");
         godFather = getppid();
         initPlayer(2, &me);
-
+        exit(-1);
     }
 
-    printf("\nsend player to server\n");
     sendPlayerToServer(&me);
-    printf("\nplayer sent to server\n");
 
 
     do{
-        printf("\nwait for message press enter to resume\n");
-        //getchar();
         message = waitForMessage(data, &me);
         if (message.action == NEW_POS){//data is the array of all players
             allPlayer = data;
-            if(message.pid == godFather) {
-                printf("\nNew position\n");
+            if(message.pid == godFather) { // New position from server
                 error = sendMessageToNextPlayer( getpid(), allPlayer, &me);
 
             }else if(message.pid == getpid()) {
-                printf("\nLoopback\n");
+                //Loopback
                 //todo : sig to server
 
             }else {
-                printf("\nNew position\n");
+                //New position from the last player
                 error = sendMessageToNextPlayer( message.pid, allPlayer, &me);
             }
 
         }else if(message.action == DICE_ROLL ){//data is the result of the dice roll
-            printf("\nIt's your turn %s, press ENTER to roll the dice : ",me.name);
+            printf("\nIt's your turn, ENTER to roll the dice : ");
             getchar();
-            printf("\nYou've rolled a %d, choose a horse : ",data);
+            printf("\nYou've rolled a %d, choose a horse : ",*(int*)data);
             scanf("%d",&temp);
-            error = sendHorseServer( temp, &me);
+            error = sendHorseServer( &temp, &me);
 
         }
     }while (!me.has_ended && error ==0);
 
-
+    printf("\n\n The end\n\n");
+    getchar();
     return 0;
 }

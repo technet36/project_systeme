@@ -106,11 +106,11 @@ void displayBoardFromPlayersArray(player_t *players) {
 
 
 
-int sendHorseServer(int idHorse, player_t* me){
+int sendHorseServer(int* idHorse, player_t* me){
     int f , i;
 
     f = open("PToServer",  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
-    i = sendMessage(getpid(), CHOOSE_HORSE, f, &idHorse, sizeof(int));
+    i = sendMessage(getpid(), CHOOSE_HORSE, f, idHorse, sizeof(int));
     close(f);
 
     return i;
@@ -118,13 +118,8 @@ int sendHorseServer(int idHorse, player_t* me){
 
 int sendPlayerToServer(player_t* me){
     int f , i;
-    //printf("\nI'm in %s",__func__);
-    displayPlayer(me);
-
-
     f = open("PToServer",  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), NEW_PLAYER, f, me, sizeof(player_t));
-    //printf("\nP%d sent player %s\n",me->id,me->name);
     close(f);
     return i;
 }
@@ -148,7 +143,6 @@ int sendMessageToNextPlayer(int pid, player_t* playerArray, player_t* me){
 }
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData) {
-    //printf("\nI'm in %s",__func__);
 
     int bytesRead =0;
     bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
@@ -164,10 +158,10 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
-
-
     char* fileDescriptorParentName;
     char* fileDescriptorSiblingName;
+    char* fileNameRead;
+    int fileToEmpty;
 
     if (me->id==0) {
         fileDescriptorParentName = "ServerToP0";
@@ -183,8 +177,6 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
         fileDescriptorSiblingName = "P2ToP3";
     }
 
-
-
     int fileFromParent = open(fileDescriptorParentName,  O_RDONLY );//need the file
     int fileFromSibling= open(fileDescriptorSiblingName,  O_RDONLY );//need the file
 
@@ -192,14 +184,14 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
         if(read(fileFromParent,&sizeToRead, sizeof(int) ) > 0){
             temp = 1;
             f = fileFromParent;
+            fileNameRead = fileDescriptorParentName;
 
-        } else if(read(fileFromSibling,&sizeToRead, sizeof(int) ) > 0){
+        } else if(read( fileFromSibling,&sizeToRead, sizeof(int) ) > 0){
             temp = 1;
             f = fileFromSibling;
+            fileNameRead = fileDescriptorSiblingName;
         }
     }
-    //data = (void*)malloc(sizeToRead);
-    //message.data = (void*)malloc(sizeToRead);
 
     read(f, &message.pid, sizeof(int));
     read(f, &message.action, sizeof(int));
@@ -208,19 +200,20 @@ messageInfo_t waitForMessage(void* data, player_t* me) {
     close(fileFromParent);
     close(fileFromSibling);
 
-    if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
+    //to empty the file
+    fileToEmpty = open(fileNameRead, O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
+    close(fileToEmpty);
 
+    if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
 
     return message;
 }
 
 
 
-
-
-int sendDiceRoll(int dice, int nextPlayer){
+int sendDiceRoll(int* dice, int nextPlayer){
     char* fileDescriptorName;
-    int f;
+    int f, i;
 
     if (nextPlayer==0) fileDescriptorName = "ServerToP0";
     if (nextPlayer==1) fileDescriptorName = "ServerToP1";
@@ -230,6 +223,7 @@ int sendDiceRoll(int dice, int nextPlayer){
 
     f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
     i = sendMessage(getpid(), DICE_ROLL, f, dice, sizeof(int));
+
 
     close(f);
     return i;
@@ -257,43 +251,23 @@ messageInfo_t waitForPlayerMessageToServer(void* data){
     fileToServer = open("PToServer", O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
     close(fileToServer);
 
-    //displayPlayer(data);
-
     return message;
 }
 
+int broadCastPlayerArray(player_t* playerArray, int nextPlayer) {
+    int f, i;
+    char* fileDescriptorName;
 
+    if (nextPlayer==0) fileDescriptorName = "ServerToP0";
+    if (nextPlayer==1) fileDescriptorName = "ServerToP1";
+    if (nextPlayer==2) fileDescriptorName = "ServerToP2";
+    if (nextPlayer==3) fileDescriptorName = "ServerToP3";
 
+    f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
 
-/*
-
-void testParseurs(){
-
-}
-
-int printPlayer(player_t *player, char* printTo) {
-    int f = open("filsToPere.txt",  O_WRONLY | O_APPEND | O_TRUNC | O_CREAT); // should not need the file but does in fact
-
-    if(write(f,player, sizeof(player_t)) == -1){
-        perror("Write");
-        close(f);
-        return -1;
-    }
+    i += sendMessage(getpid(), NEW_POS, f, playerArray, sizeof(player_t) * NB_PLAYER);
     close(f);
 
-    return 0;
+    return (i== sizeof(player_t)*NB_PLAYER*NB_PLAYER)-1;
 
 }
-
-int readPlayer (player_t* newPlayer){
-    int f = open("filsToPere.txt",  O_RDONLY );//need the file
-
-    if (read(f,newPlayer, sizeof(player_t) ) == -1){
-        perror("read");
-        close(f);
-        return -1;
-    }
-    close(f);
-    return 0;
-}
-*/

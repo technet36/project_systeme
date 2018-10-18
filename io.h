@@ -33,9 +33,9 @@ void displayPlayer(player_t* player);
 void displayBoardFromPlayersArray(player_t *players);//todo
 
 
-int sendDiceRoll(int dice, int nextPlayer);//todo
+int sendDiceRoll(int* dice, int nextPlayer);//todo
 
-int sendHorseServer(int idHorse, player_t* me);
+int sendHorseServer(int* idHorse, player_t* me);
 
 int sendPlayerToServer(player_t* me);
 
@@ -47,5 +47,6 @@ messageInfo_t waitForMessage(void* data, player_t* me);
 
 messageInfo_t waitForPlayerMessageToServer(void* data);
 
+int broadCastPlayerArray(player_t* playerArray, int nextPlayer);
 
 #endif //PROJECT_SYSTEME_IO_H
