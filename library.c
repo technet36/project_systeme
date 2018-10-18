@@ -1,11 +1,5 @@
 #include "library.h"
 
-
-
-//#############################
-//-----PRIVATE FONCTIONS--------
-//#############################
-
 void initPlayers(player_t *players) {
     int i ,j;
     char* playerName[4];
@@ -15,7 +9,7 @@ void initPlayers(player_t *players) {
     playerName[3] = "toto_3";
     for (i = 0; i < NB_PLAYER; ++i) {
         players[i].has_ended = false;
-        players[i].name = playerName[i];
+        sprintf(players[i].name, "%s",playerName[i]);
         players[i].id = i;
         players[i].nb_coups=0;
         for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
@@ -23,35 +17,12 @@ void initPlayers(player_t *players) {
             players[i].stable[j].position = -1;
         }
     }
-
-int isThereObstacle(game_t *game, int position, int dice, int stairsEntrancePosition) {
-    int i;
-
-    for (i = 1 ; i < dice; i = i+1) {
-        if(game->board[(i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER)].id_player != -1 || (i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER) == stairsEntrancePosition){//there is an obstacle
-            return position + 2 * i - dice;
-        }
-    }
-    return (dice+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER);
 }
-
-int nextStair(int position, int stairsEntrancePosition, int firstStair) {
-
-    if (position == stairsEntrancePosition ){//first stair
-        return firstStair;
-    } else if(position == (firstStair+NB_STAIRS_BY_PLAYER-1)) {//last stair
-        return -2;
-    } else {//others
-        return position+1;
-    }
-}
-
 
 void copyPlayer(player_t *players, player_t* playerSrc) {
 
     int i = playerSrc->id,j;
 
-    //printf("id = =%d\n",i);
 
     players[i].has_ended = playerSrc->has_ended;
 
