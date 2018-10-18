@@ -99,14 +99,16 @@ printf("\nInit pipes");
 
     for (i = 0; i < NB_PLAYER; ++i) {
         printf("\nforking %d",i);
+        printf("\nbite %d",temp);
 
-        if(fork()==0){
+        if((temp = fork())==0){
             printf("\nSon %d",i);
             //sprintf(myCommand, "./player %d %d %d %d %d %d", i, serverPid, pipeForChildren[i][0], pipeForChildren[i][1], pipeForChildren[i][2], pipeForChildren[i][3]);
             //execlp("/usr/bin/gnome-terminal", "gnome-terminal", "-e", myCommand ,NULL);
             for (j = 0; j < 4; ++j) {
                 close(pipeForChildrenToClose[i][j]);
             }
+            sprintf(myCommand[0],"./player");
             sprintf(myCommand[1],"%d",i);
             sprintf(myCommand[2],"%d",serverPid);
             sprintf(myCommand[3],"%d",pipeForChildren[i][0]);
@@ -115,7 +117,7 @@ printf("\nInit pipes");
             sprintf(myCommand[6],"%d",pipeForChildren[i][3]);
 
             main_PLAYER(7, myCommand);
-            exit(-1);
+            exit(0);
         }
     }
     printf("\nparent");
