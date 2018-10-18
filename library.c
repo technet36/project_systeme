@@ -6,15 +6,6 @@
 //-----PRIVATE FONCTIONS--------
 //#############################
 
-int displayError(error_t* error){
-    if (error->childFuncName !=NULL && error->funcName!=NULL && error->errCode != 0){
-        fprintf(stderr,"\n%s() \t->\t%s() \t->\t %s\n",error->funcName,error->childFuncName, error->msg);
-    } else if (error->errCode!=0){
-        fprintf(stderr,"\n%s() \t-> \t%s\n", error->funcName, error->msg);
-    }
-    return error->errCode;
-}
-
 void initPlayers(player_t *players) {
     int i ,j;
     char* playerName[4];
@@ -33,9 +24,50 @@ void initPlayers(player_t *players) {
         }
     }
 
+int isThereObstacle(game_t *game, int position, int dice, int stairsEntrancePosition) {
+    int i;
+
+    for (i = 1 ; i < dice; i = i+1) {
+        if(game->board[(i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER)].id_player != -1 || (i+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER) == stairsEntrancePosition){//there is an obstacle
+            return position + 2 * i - dice;
+        }
+    }
+    return (dice+position)%(NB_SQUARE_BY_PLAYER*NB_PLAYER);
 }
 
-int goToSquare (game_t *theGame, int idPlayer, int idHorse, int newPosition){
+int nextStair(int position, int stairsEntrancePosition, int firstStair) {
+
+    if (position == stairsEntrancePosition ){//first stair
+        return firstStair;
+    } else if(position == (firstStair+NB_STAIRS_BY_PLAYER-1)) {//last stair
+        return -2;
+    } else {//others
+        return position+1;
+    }
+}
+
+
+void copyPlayer(player_t *players, player_t* playerSrc) {
+
+    int i = playerSrc->id,j;
+
+    //printf("id = =%d\n",i);
+
+    players[i].has_ended = playerSrc->has_ended;
+
+    sprintf(players[i].name , "%s",playerSrc->name);
+
+    players[i].id = i;
+
+    players[i].nb_coups = playerSrc->nb_coups;
+
+    for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
+        players[i].stable[j].id = playerSrc->stable[j].id;
+        players[i].stable[j].position = playerSrc->stable[j].position;
+    }
+}
+
+int goToSquare(game_t *theGame, int idPlayer, int idHorse, int newPosition) {
     if ( newPosition >= NB_SQUARE_BOARD || newPosition < -2 || idPlayer<0 || idPlayer >= NB_PLAYER || idHorse < 0 || idHorse >= NB_HORSE_BY_PLAYER ){//bad arguments
         error_t newError;
         newError.funcName = __func__;
@@ -119,118 +151,12 @@ int init(game_t* myGame) {
     srand((unsigned int)time(0));//seed for rand()
     myGame->has_ended = false;
     int i;
-    initPlayers(myGame->players);
+    //initPlayers(myGame->players);
     for (i = 0; i < NB_SQUARE_BOARD; ++i) {
         myGame->board[i].id_horse = -1;
         myGame->board[i].id_player = -1;
     }
     return 0;
-}
-
-void display(game_t *theGame) {
-    int i, j;
-    printf("\n");
-    for (j = 0; j < NB_PLAYER; ++j) {
-
-
-        printf("\n\n%s:\n",theGame->players[j].name);
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("_");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_SQUARE_BY_PLAYER; ++i) {
-            printf("___");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("__");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("_");
-        }
-        printf("\n");
-
-
-
-        printf("|");
-        for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-            printf("%c",(char)(theGame->players[j].stable[i].position!=-1?'-':48+theGame->players[j].stable[i].id));//48 = ASCII code of '0'
-        }
-        printf("|\t\t");
-
-        for (i = j*NB_SQUARE_BY_PLAYER; i < (j+1)*NB_SQUARE_BY_PLAYER; ++i) {
-            printf("|%c%c",(char)(theGame->board[i].id_player==-1?'-':48+theGame->board[i].id_player), (char)theGame->board[i].id_horse==-1?'-':48+theGame->board[i].id_horse);//48 = ASCII code of '0'
-        }
-        printf("|\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("|%c",(char)theGame->board[NB_PLAYER*NB_SQUARE_BY_PLAYER+j*NB_STAIRS_BY_PLAYER+i].id_horse==-1?'-':48+theGame->board[NB_PLAYER*NB_SQUARE_BY_PLAYER+i].id_horse);//48 = ASCII code of '0'
-        }
-        printf("|\t\t|");
-        for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-            printf("%c",(char)(theGame->players[j].stable[i].position!=-2?'-':48+theGame->players[j].stable[i].id));//48 = ASCII code of '0'
-        }
-        printf("|\n");
-
-
-
-
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_SQUARE_BY_PLAYER; ++i) {
-            printf("¯¯¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("¯¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("¯");
-        }
-        printf("\n");
-    }
-}
-
-void diplayPlayer(player_t *player) {
-    int i, j,k ,l;
-    printf("\n");
-
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("id:\t\t\t%d\t\t\t\t",player[i].id);
-
-    }
-    printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("name:\t%s\t\t\t\t",player[i].name);
-    }
-    printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("nb coup:\t%d\t\t\t\t",player[i].nb_coups);
-    }
-    printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("has ended:\t%d\t\t\t\t",player[i].has_ended);
-    }
-    printf("\n");
-    for (i = 0; i < NB_PLAYER; ++i) {
-        printf("stable:\t\t\t\t\t\t");
-    }
-    printf("\n");
-    for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-        for (j = 0; j < NB_PLAYER; ++j) {
-            printf("\tid:\t\t%d\t\t\t\t",player[j].stable[i].id);
-        }
-        printf("\n");
-        for (j = 0; j < NB_PLAYER; ++j) {
-            printf("\tpos:\t%d\t\t\t\t",player[j].stable[i].position);
-        }
-        printf("\n\n");
-    }
-    printf("\n");
-
 }
 
 int play(game_t* theGame, int idPlayer, int idHorse, int dice) {
@@ -257,7 +183,6 @@ int play(game_t* theGame, int idPlayer, int idHorse, int dice) {
             goToSquare(theGame, idPlayer, idHorse, NB_SQUARE_BY_PLAYER*idPlayer);
         }
     } else if (position == stairsEntrancePosition || position >= firstStair) {//######################## wanna go on the stairs
-
         int newPosition = nextStair(position, stairsEntrancePosition, firstStair);
 
         if(newPosition == -2 && dice == 6 ){
