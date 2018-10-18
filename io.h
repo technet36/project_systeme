@@ -33,20 +33,20 @@ void displayPlayer(player_t* player);
 void displayBoardFromPlayersArray(player_t *players);//todo
 
 
-int sendDiceRoll(int* dice, int nextPlayer);//todo
+int sendDiceRoll(int* dice, int fileDescriptor);
 
-int sendHorseServer(int* idHorse, player_t* me);
+int sendHorseServer(int* idHorse, int fileDescriptor);
 
-int sendPlayerToServer(player_t* me);
+int sendPlayerToServer(player_t* me, int fileDescriptor);
 
-int sendMessageToNextPlayer(int pid,player_t* playerArray, player_t* me);
+int sendMessageToNextPlayer(int pid,player_t* playerArray, int fileDescriptor);
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
 
-messageInfo_t waitForMessage(void* data, player_t* me);
+messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);//todo
 
-messageInfo_t waitForPlayerMessageToServer(void* data);
+messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor);
 
-int broadCastPlayerArray(player_t* playerArray, int nextPlayer);
+int broadCastPlayerArray(player_t* playerArray, int fileDescriptor);
 
 #endif //PROJECT_SYSTEME_IO_H

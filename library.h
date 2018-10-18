@@ -6,6 +6,11 @@
 #include "structures.h"
 #include "io.h"
 
+typedef struct {
+    int outPx[0];
+    int inPx;
+}pipes_t;
+
 void copyPlayer(player_t *players, player_t* playerSrc);
 
 int nextStair(int position, int stairsEntrancePosition, int firstStair);
