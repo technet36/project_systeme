@@ -16,4 +16,8 @@ sinon vous pouvez utilisesr la commande
   
 ## Execution  
 Apres avoir lancé le programme il faut entrée successivement le noms des quatres joueurs.  
-*L'affichage depuis les fils rend le prompt peu lisible, c'est un vestige du programme quand il les joueurs avaient leur propre terminale*
+*L'affichage depuis les fils rend le prompt peu lisible, c'est un vestige du programme quand il les joueurs avaient leur propre terminale*  
+  
+Ensuite chaque tours suit le même patern:  
+* ENTRER pour lancer le dé  
+* Choix du cheval [0,4]  
