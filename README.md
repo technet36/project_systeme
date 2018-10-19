@@ -1,4 +1,7 @@
-# project_systeme
+# Système et Réseaux - Projet Introduction au Système
+L3 - MIAGE 19/10/2018   
+Maxence Morand     
+Thiam Cheikh    
 
 ## Compilation
 1. Assurer-vous que vous ayez tout les fichiers necessaires
@@ -9,10 +12,11 @@
   * io.h
   * io.c
   * player.h
-  * player.c
+  * player.c  
+vous pouvez executer le fichier "game"
 2. Si vous avez le fichier ```makefile``` vous pouvez executer la commande make  
 sinon vous pouvez utilisesr la commande  
-```gcc server.c library.c io.c player.c -o leJeu```  
+```gcc server.c library.c io.c player.c -o game```  
   
 ## Exécution  
 Apres avoir lancé le programme il faut entrée successivement le noms des quatres joueurs.  

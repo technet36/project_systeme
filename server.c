@@ -1,3 +1,9 @@
+/*
+ * Projet Système et Réseaux - L3 MIAGE
+ * Maxence Morand
+ * Thiam Cheikh
+ *
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "structures.h"

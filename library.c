@@ -1,3 +1,9 @@
+/*
+ * Projet Système et Réseaux - L3 MIAGE
+ * Maxence Morand
+ * Thiam Cheikh
+ *
+ */
 #include "library.h"
 
 void initPlayers(player_t *players) {

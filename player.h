@@ -1,6 +1,9 @@
-//
-// Created by moran on 11/10/2018.
-//
+/*
+ * Projet Système et Réseaux - L3 MIAGE
+ * Maxence Morand
+ * Thiam Cheikh
+ *
+ */
 
 #ifndef PROJECT_SYSTEME_PLAYER_H
 #define PROJECT_SYSTEME_PLAYER_H

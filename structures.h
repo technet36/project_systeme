@@ -1,3 +1,9 @@
+/*
+ * Projet Système et Réseaux - L3 MIAGE
+ * Maxence Morand
+ * Thiam Cheikh
+ *
+ */
 #ifndef PROJECT_SYSTEME_STRUCTURES_H
 #define PROJECT_SYSTEME_STRUCTURES_H
 

@@ -1,5 +1,10 @@
+/*
+ * Projet Système et Réseaux - L3 MIAGE
+ * Maxence Morand
+ * Thiam Cheikh
+ *
+ */
 #include "io.h"
-
 
 int displayError(error_t *error) {
     if (error->childFuncName !=NULL && error->funcName!=NULL && error->errCode != 0){
