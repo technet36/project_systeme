@@ -1,7 +1,8 @@
 #include "player.h"
 
 int initPlayer(int idPlayer, player_t* me){
-    printf("\nHi there new player\nWhat is you name ? : \n");
+    printf("\nHi there new player\nWhat is your name ? : \n");
+    fflush(0);
     scanf("%s",me->name);
     int j;
     me->has_ended = false;
@@ -14,7 +15,7 @@ int initPlayer(int idPlayer, player_t* me){
     return 0;
 }
 
-int main_PLAYER(int argc, char* argv[]){
+int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int outServer){
     player_t me;
     player_t* allPlayer;
     int godFather;
@@ -24,27 +25,21 @@ int main_PLAYER(int argc, char* argv[]){
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     pipes_PLAYER_t myPipes;
 
-    if (argc==7){
-        myPipes.inLast = atoi(argv[3]);
-        myPipes.inServer = atoi(argv[4]);
-        myPipes.outNext = atoi(argv[5]);
-        myPipes.outServer = atoi(argv[6]);
-        godFather = atoi(argv[2]);/*
-        printf("\nThis is player %s\n",argv[1]);
-        printf(" \npipe.inLast : %d",myPipes.inLast);
-        printf(" \npipe.inServer : %d",myPipes.inServer);
-        printf(" \npipe.outNext : %d",myPipes.outNext);
-        printf(" \npipe.outServer : %d",myPipes.outServer);*/
+    myPipes.inLast = inLast;
+    myPipes.inServer = inServer;
+    myPipes.outNext = outNext;
+    myPipes.outServer = outServer;
+    godFather = ppid;
+    printf("\nThis is player %d",id);
+    printf(" \npipe.inLast : %d",myPipes.inLast);
+    printf(" \npipe.inServer : %d",myPipes.inServer);
+    printf(" \npipe.outNext : %d",myPipes.outNext);
+    printf(" \npipe.outServer : %d\n",myPipes.outServer);
 
 
-        initPlayer(atoi(argv[1]), &me);
+    initPlayer(id, &me);
 
-    }else{
-        printf("\nerror ENTER to exit\n");
-        getchar();
-        exit(-1);
-    }
-
+//fflush(0);
     sendPlayerToServer(&me, myPipes.outServer);
 
 

@@ -155,16 +155,16 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
 }
 
 messageInfo_t waitForMessage(void* data, int fileDescriptorSibling, int fileDescriptorServer) {
-    int fileToRead, sizeToRead, temp = 0;
+    int fileToRead, sizeToRead, temp = 0, i=0;
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
     fd_set fileDescriptorSet;
-    FD_ZERO(&fileDescriptorSet);
-    FD_SET(fileDescriptorSibling, &fileDescriptorSet);
-    FD_SET(fileDescriptorServer, &fileDescriptorSet);
+    FD_ZERO( &fileDescriptorSet);
+    FD_SET( fileDescriptorSibling, &fileDescriptorSet);
+    FD_SET( fileDescriptorServer, &fileDescriptorSet);
 
-
+printf("\n waitForMessage()\n");
 
     /*char* fileDescriptorParentName;
     //char* fileDescriptorSiblingName;
@@ -201,15 +201,16 @@ messageInfo_t waitForMessage(void* data, int fileDescriptorSibling, int fileDesc
         }
     //}*/
 
+    printf("fd parent: %d, fd child : %d\n",fileDescriptorServer, fileDescriptorSibling);
     select(2, &fileDescriptorSet, NULL, NULL, NULL);
-
     fileToRead = FD_ISSET(fileDescriptorServer, &fileDescriptorSet)?fileDescriptorServer:fileDescriptorSibling;
 
-    read(fileToRead,&sizeToRead, sizeof(int) );
-    read(fileToRead, &message.pid, sizeof(int));
-    read(fileToRead, &message.action, sizeof(int));
-    read(fileToRead, data, sizeToRead);
 
+    i += read(fileToRead, &sizeToRead, sizeof(int) );
+    i += read(fileToRead, &message.pid, sizeof(int));
+    i += read(fileToRead, &message.action, sizeof(int));
+    i += read(fileToRead, data, sizeToRead);
+printf("i : %d,fileToRead: %d\n",i,fileToRead);
     //close(fileFromParent);
     //close(fileFromSibling);
 
@@ -246,22 +247,21 @@ int sendDiceRoll(int* dice, int fileDescriptor){
 
 messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor){
 
-    int f, sizeToRead, i, temp = 0;
+    int f, sizeToRead, i=0, temp = 0;
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
-
     //int fileToServer = open("PToServer",  O_RDONLY );//need the file
 
-    i = read(fileDescriptor,&sizeToRead, sizeof(int));
-    i = read(fileDescriptor, &message.pid, sizeof(int));
-    i = read(fileDescriptor, &message.action, sizeof(int));
-    i = read(fileDescriptor, data, sizeToRead);
+    i += read(fileDescriptor,&sizeToRead, sizeof(int));
+    i += read(fileDescriptor, &message.pid, sizeof(int));
+    i += read(fileDescriptor, &message.action, sizeof(int));
+    i += read(fileDescriptor, data, sizeToRead);
     //close(fileToServer);
-
     //to empty the file
     //fileToServer = open("PToServer", O_WRONLY | O_APPEND| O_TRUNC | O_CREAT);
     //close(fileToServer);
+printf("i : %d fd: %d \n",i,fileDescriptor);
 
     return message;
 }
@@ -277,9 +277,9 @@ int broadCastPlayerArray(player_t* playerArray, int fileDescriptor) {
 
     f = open(fileDescriptorName,  O_WRONLY | O_APPEND| O_TRUNC | O_CREAT ); // should not need the file but does in fact
 */
-    i += sendMessage(getpid(), NEW_POS, fileDescriptor, playerArray, sizeof(player_t) * NB_PLAYER);
+    i = sendMessage(getpid(), NEW_POS, fileDescriptor, playerArray, sizeof(player_t) * NB_PLAYER);
     //close(f);
-
+printf("i : %d fd: %d \n",i,fileDescriptor);
     return (i== sizeof(player_t)*NB_PLAYER*NB_PLAYER)-1;
 
 }

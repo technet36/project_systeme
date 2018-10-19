@@ -12,7 +12,7 @@ typedef struct {
     int inLast, inServer, outNext, outServer;
 }pipes_PLAYER_t;
 
-int main_PLAYER(int argc, char* argv[]);
+int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int outServer);
 
 
 int initPlayer(int idPlayer, player_t* me);

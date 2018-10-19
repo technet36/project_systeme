@@ -8,8 +8,8 @@
 
 int main(int argc, char* argv[]) {
 
-    int i, j, roll, nextPlayer = 0, input, temp = 0, myAction, serverPid = getpid();
-    char* myCommand[7];
+    int i=0, j, roll, nextPlayer = 0, input, temp = 0, myAction, serverPid = getpid();
+    char (*myCommand)[7];
 
 
     game_t theGame;
@@ -19,7 +19,6 @@ int main(int argc, char* argv[]) {
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     pipes_t myPipes;
 
-printf("\nInit pipes");
 
     int P0ToP1[2];
     int P1ToP2[2];
@@ -36,16 +35,16 @@ printf("\nInit pipes");
     int pipeForChildren[4][4];
     int pipeForChildrenToClose[4][4];
 
-    pipe(P0ToP1);
-    pipe(P1ToP2);
-    pipe(P2ToP3);
-    pipe(P3ToP0);
-    pipe(PxToServer);
+    i += pipe(P0ToP1);
+    i += pipe(P1ToP2);
+    i += pipe(P2ToP3);
+    i += pipe(P3ToP0);
+    i += pipe(PxToServer);
+    i += pipe(serverToP0);
+    i += pipe(serverToP1);
+    i += pipe(serverToP2);
+    i += pipe(serverToP3);
 
-    pipe(serverToP0);
-    pipe(serverToP1);
-    pipe(serverToP2);
-    pipe(serverToP3);
 
     myPipes.inPx = PxToServer[0];
     myPipes.outPx[0] = serverToP0[1];
@@ -95,20 +94,15 @@ printf("\nInit pipes");
     pipeForChildrenToClose[3][2] = P3ToP0[0];
     pipeForChildrenToClose[3][3] = PxToServer[0];
 
-    printf("\nGoing to fork %d",i);
-
     for (i = 0; i < NB_PLAYER; ++i) {
-        printf("\nforking %d",i);
-        printf("\nbite %d",temp);
-
         if((temp = fork())==0){
-            printf("\nSon %d",i);
+            //fflush(0);
             //sprintf(myCommand, "./player %d %d %d %d %d %d", i, serverPid, pipeForChildren[i][0], pipeForChildren[i][1], pipeForChildren[i][2], pipeForChildren[i][3]);
             //execlp("/usr/bin/gnome-terminal", "gnome-terminal", "-e", myCommand ,NULL);
-            for (j = 0; j < 4; ++j) {
-                close(pipeForChildrenToClose[i][j]);
-            }
-            sprintf(myCommand[0],"./player");
+            //for (j = 0; j < 4; ++j) {
+              //  close(pipeForChildrenToClose[i][j]);
+           // }
+          /*  sprintf(myCommand[0],"./player");
             sprintf(myCommand[1],"%d",i);
             sprintf(myCommand[2],"%d",serverPid);
             sprintf(myCommand[3],"%d",pipeForChildren[i][0]);
@@ -116,30 +110,29 @@ printf("\nInit pipes");
             sprintf(myCommand[5],"%d",pipeForChildren[i][2]);
             sprintf(myCommand[6],"%d",pipeForChildren[i][3]);
 
-            main_PLAYER(7, myCommand);
+            fflush(0);*/
+            main_PLAYER(i, serverPid, pipeForChildren[i][0], pipeForChildren[i][1], pipeForChildren[i][2], pipeForChildren[i][3]);
             exit(0);
         }
     }
-    printf("\nparent");
-    close(P0ToP1[0]);
-    close(P1ToP2[0]);
-    close(P2ToP3[0]);
-    close(P3ToP0[0]);
+    //close(P0ToP1[0]);
+    //close(P1ToP2[0]);
+    //close(P2ToP3[0]);
+    //close(P3ToP0[0]);
+//
+    //close(P0ToP1[1]);
+    //close(P1ToP2[1]);
+    //close(P2ToP3[1]);
+    //close(P3ToP0[1]);
+//
+    //close(serverToP0[0]);
+    //close(serverToP1[0]);
+    //close(serverToP2[0]);
+    //close(serverToP3[0]);
 
-    close(P0ToP1[1]);
-    close(P1ToP2[1]);
-    close(P2ToP3[1]);
-    close(P3ToP0[1]);
-
-    close(serverToP0[0]);
-    close(serverToP1[0]);
-    close(serverToP2[0]);
-    close(serverToP3[0]);
-
-    close(PxToServer[1]);
+    //close(PxToServer[1]);
 
     i=0;
-
     while (i<NB_PLAYER){
         message = waitForPlayerMessageToServer(data, myPipes.inPx);
         if(message.action == NEW_PLAYER){
@@ -149,20 +142,20 @@ printf("\nInit pipes");
         }
     }
 
-
     do{
         displayGame(&theGame);
         broadCastPlayerArray(theGame.players, myPipes.outPx[nextPlayer]);
 
         printf("\t%s : ",theGame.players[nextPlayer].name);
+        fflush(0);
         roll = diceRoll();
-
+printf("\nDice = %d\n",roll);
         sendDiceRoll(&roll,myPipes.outPx[nextPlayer]);
-
+printf("wait for horse\n");
         while( (message = waitForPlayerMessageToServer(data,myPipes.inPx)).action != CHOOSE_HORSE){/*ignore the messages*/}
         //data is the horse choosen
 
-        printf("\nhorse choosen %d",*(int*)data);
+        printf("\nhorse choosen %d\n",*(int*)data);
 
     }while((nextPlayer = play(&theGame, nextPlayer, *(int*)data, roll))!= -1);
 

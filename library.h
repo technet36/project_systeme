@@ -7,7 +7,7 @@
 #include "io.h"
 
 typedef struct {
-    int outPx[0];
+    int outPx[4];
     int inPx;
 }pipes_t;
 
