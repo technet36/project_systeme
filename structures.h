@@ -29,8 +29,7 @@ typedef struct {
  */
 typedef struct {
     int id;
-    int position;//useless now but compulsory not to have to store the all board
-    //TODO : isStairsReady : bool to avoid the horse bumps back in the stairs begining
+    int position;
 } horse_t;
 
 typedef  struct {

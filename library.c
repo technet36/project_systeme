@@ -109,11 +109,6 @@ int isThereObstacle(game_t *game, int position, int dice, int stairsEntrancePosi
 }
 
 
-//#############################
-//-----PUBLIC FONCTIONS--------
-//#############################
-
-
 int diceRoll() {
     return (rand()%6)+1;
 }
@@ -137,7 +132,7 @@ int play(game_t* theGame, int idPlayer, int idHorse, int dice) {
     int stairsEntrancePosition = (NB_SQUARE_BY_PLAYER*NB_PLAYER+NB_SQUARE_BY_PLAYER*idPlayer-1)%(NB_PLAYER*NB_SQUARE_BY_PLAYER);
     int firstStair = NB_SQUARE_BY_PLAYER*NB_PLAYER+NB_STAIRS_BY_PLAYER*idPlayer;
     int position = theGame->players[idPlayer].stable[idHorse].position;
-    //invalid horse->next player , other argument trusted todo : test 0<dice<7
+
     if (idHorse>=NB_HORSE_BY_PLAYER || idHorse<0){
         for (i = idPlayer+1; i != idPlayer; ++i) {
             i%=NB_PLAYER;
@@ -211,6 +206,7 @@ int testWhereHorseShouldBe(game_t *testGame,int idPlayer, int idHorse, int posit
     return error->errCode;
 }
 
+//deprecated
 int testInit( error_t* error){
     game_t game;
     init(&game);
@@ -227,6 +223,7 @@ int testInit( error_t* error){
     return temp;
 }
 
+//deprecated
 int testStart( error_t* error){
     game_t game;
     init(&game);
@@ -267,6 +264,7 @@ int testStart( error_t* error){
     return errorCount;
 }
 
+//deprecated
 int testObstacle( error_t* error){
     game_t game;
     init(&game);
@@ -340,7 +338,7 @@ int testObstacle( error_t* error){
 }
 
 /**
- *
+ * deprecated since init() doen't init player[]
  * @return the number of error
  */
 int test() {

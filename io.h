@@ -18,7 +18,6 @@ typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION
 typedef struct {
     int pid;
     int action;
-    void* data;
 }messageInfo_t;
 
 
@@ -48,7 +47,7 @@ int sendMessageToNextPlayer(int pid,player_t* playerArray, int fileDescriptor);
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
 
-messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);//todo
+messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);
 
 messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor);
 
