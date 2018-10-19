@@ -65,6 +65,5 @@ int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int out
     }while (!me.has_ended && error ==0);
 
     printf("\n\n The end\n\n");
-    getchar();
     return 0;
 }
