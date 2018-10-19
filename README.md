@@ -14,7 +14,7 @@
 sinon vous pouvez utilisesr la commande  
 ```gcc server.c library.c io.c player.c -o leJeu```  
   
-## Execution  
+## Exécution  
 Apres avoir lancé le programme il faut entrée successivement le noms des quatres joueurs.  
 *L'affichage depuis les fils rend le prompt peu lisible, c'est un vestige du programme quand il les joueurs avaient leur propre terminale*  
   
