@@ -1,7 +1,7 @@
 #include "player.h"
 
 int initPlayer(int idPlayer, player_t* me){
-    printf("\nHi there new player\nWhat is your name ? : \n");
+    printf("\nHi there new player(%d)\nWhat is your name ? : \n",idPlayer);
     fflush(0);
     scanf("%s",me->name);
     int j;
@@ -30,24 +30,17 @@ int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int out
     myPipes.outNext = outNext;
     myPipes.outServer = outServer;
     godFather = ppid;
-    printf("\nThis is player %d",id);
-    printf(" \npipe.inLast : %d",myPipes.inLast);
-    printf(" \npipe.inServer : %d",myPipes.inServer);
-    printf(" \npipe.outNext : %d",myPipes.outNext);
-    printf(" \npipe.outServer : %d\n",myPipes.outServer);
 
 
     initPlayer(id, &me);
 
-//fflush(0);
     sendPlayerToServer(&me, myPipes.outServer);
-
-
     do{
         message = waitForMessage(data, myPipes.inLast, myPipes.inServer);
         if (message.action == NEW_POS){//data is the array of all players
             allPlayer = data;
             if(message.pid == godFather) { // New position from server
+                //printf("got message from server\n");
                 error = sendMessageToNextPlayer( getpid(), allPlayer, myPipes.outNext);
 
             }else if(message.pid == getpid()) {
@@ -56,12 +49,14 @@ int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int out
 
             }else {
                 //New position from the last player
+                //printf("\ngot update from last player");
                 error = sendMessageToNextPlayer( message.pid, allPlayer, myPipes.outNext);
             }
 
         }else if(message.action == DICE_ROLL ){//data is the result of the dice roll
-            printf("\nIt's your turn, ENTER to roll the dice : ");
-            getchar();
+            printf("\nIt's your turn %s, ENTER to roll the dice :",me.name);
+            //scanf()
+            while(getchar()!=EOF && getchar()!='\n');
             printf("\nYou've rolled a %d, choose a horse : ",*(int*)data);
             scanf("%d",&temp);
             error = sendHorseServer( &temp, myPipes.outServer);

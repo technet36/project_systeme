@@ -1,12 +1,17 @@
 #ifndef PROJECT_SYSTEME_IO_H
 #define PROJECT_SYSTEME_IO_H
 
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
 #include "structures.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/fcntl.h>
 
+#define  max(a,b) ({(a)>(b)?(a):(b);})
 
 typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION_T;
 
