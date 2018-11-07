@@ -9,11 +9,9 @@
 #define PROJECT_SYSTEME_PLAYER_H
 #include <stdio.h>
 //#include "library.h"
-#include "structures.h"
-#include "io.h"
-typedef struct {
-    int inLast, inServer, outNext, outServer;
-}pipes_PLAYER_t;
+#include "../structures.h"
+#include "../io.h"
+#include <stdlib.h>
 
 int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int outServer);
 

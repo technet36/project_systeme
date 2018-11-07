@@ -26,7 +26,14 @@ typedef struct {
     int action;
 }messageInfo_t;
 
+typedef struct {
+    int outPx[4];
+    int inPx;
+}pipes_t;
 
+typedef struct {
+    int inLast, inServer, outNext, outServer;
+}pipes_PLAYER_t;
 
 int displayError(error_t* error);
 
@@ -34,6 +41,8 @@ int displayError(error_t* error);
  * display the game board
  */
 void displayGame(game_t* board);
+
+void initIO(pipes_t* myPipes, int[4][4], int[4][4]);
 
 /**
  * display the stats of the specified player

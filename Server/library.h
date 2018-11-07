@@ -9,13 +9,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
-#include "structures.h"
+#include "../structures.h"
 #include "io.h"
 
-typedef struct {
-    int outPx[4];
-    int inPx;
-}pipes_t;
 
 void copyPlayer(player_t *players, player_t* playerSrc);
 
