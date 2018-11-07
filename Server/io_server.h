@@ -32,19 +32,9 @@ typedef struct {
 }pipes_t;
 
 
-/**
- * display the game board
- */
-void displayGame(game_t* board);
 
 void initIO(pipes_t* myPipes, int[4][4], int[4][4]);
 
-/**
- * display the stats of the specified player
- */
-void displayPlayer(player_t* player);
-
-void displayBoardFromPlayersArray(player_t *players);//todo
 int sendDiceRoll(int* dice, int fileDescriptor);
 
 messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor);
@@ -53,6 +43,4 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
 
 int broadCastPlayerArray(player_t* playerArray, int fileDescriptor);
 
-
-int displayError(error_t* error);
 #endif //PROJECT_SYSTEME_IO_SERVER_H

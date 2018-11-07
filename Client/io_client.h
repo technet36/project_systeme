@@ -31,12 +31,6 @@ typedef struct {
     int action;
 }messageInfo_t;
 
-/**
- * display the stats of the specified player
- */
-void displayPlayer(player_t* player);
-
-void displayBoardFromPlayersArray(player_t *players);//todo
 
 int sendHorseServer(int* idHorse, int fileDescriptor);
 
@@ -45,9 +39,6 @@ int sendPlayerToServer(player_t* me, int fileDescriptor);
 int sendMessageToNextPlayer(int pid,player_t* playerArray, int fileDescriptor);
 
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
-
-
-int displayError(error_t* error);
 
 messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);
 #endif //PROJECT_SYSTEME_IO_CLIENT_H

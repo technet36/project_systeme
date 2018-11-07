@@ -4,7 +4,7 @@
  * Thiam Cheikh
  *
  */
-#include "player.h"
+#include "client.h"
 
 int initPlayer(int idPlayer, player_t* me){
     printf("\nHi there new player(%d)\nWhat is your name ? : \n",idPlayer);
@@ -21,7 +21,13 @@ int initPlayer(int idPlayer, player_t* me){
     return 0;
 }
 
-int main_PLAYER(int id, int ppid, int inLast, int inServer, int outNext, int outServer){
+/**
+ *
+ * @param argc
+ * @param argv
+ * @return
+ */
+int main( int argc, char* argv[]){
     player_t me;
     player_t* allPlayer;
     int godFather;

@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <zconf.h>
 #include "../structures.h"
-#include "../io.h"
+#include "../display.h"
+#include "io_server.h"
 #include "library.h"
 
 //TODO : refactor io
@@ -33,6 +34,9 @@ int main(int argc, char* argv[]) {
 
     initIO(&myPipes, pipeForChildren, pipeForChildrenToClose);
 
+
+    //wait for 4 players
+
     for (i = 0; i < NB_PLAYER; ++i) {
         if((temp = fork())==0){
             for (j = 0; j < 4; ++j) {
@@ -42,24 +46,7 @@ int main(int argc, char* argv[]) {
             exit(0);
         }
     }
-    /*
-    close(P0ToP1[0]);
-    close(P1ToP2[0]);
-    close(P2ToP3[0]);
-    close(P3ToP0[0]);
 
-    close(P0ToP1[1]);
-    close(P1ToP2[1]);
-    close(P2ToP3[1]);
-    close(P3ToP0[1]);
-
-    close(serverToP0[0]);
-    close(serverToP1[0]);
-    close(serverToP2[0]);
-    close(serverToP3[0]);
-
-    close(PxToServer[1]);
-*/
     i=0;
     while (i<NB_PLAYER){
         message = waitForPlayerMessageToServer(data, myPipes.inPx);
