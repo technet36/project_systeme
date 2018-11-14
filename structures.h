@@ -22,7 +22,7 @@ typedef struct {
     char *childFuncName;
     char *funcName;
     char msg[100];
-}error_t;
+}my_error_t;
 
 typedef struct {
     int id_horse;

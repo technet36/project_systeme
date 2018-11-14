@@ -21,5 +21,12 @@ void displayPlayer(player_t* player);
 void displayBoardFromPlayersArray(player_t *players);//todo
 
 
-int displayError(error_t* error);
+void displayGame(game_t *theGame);
+
+int displayError(my_error_t* error);
+
+void askName(char* name);
+
+void myPrintf(char* msg);
+
 #endif //PROJECT_SYSTEME_DISPLAY_H

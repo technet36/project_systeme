@@ -5,187 +5,73 @@
 #include "io_server.h"
 
 
-void displayGame(game_t *theGame) {
-    int i, j;
-    printf("\n");
-    for (j = 0; j < NB_PLAYER; ++j) {
+void initIO_server(io_config_t* socketTab, char* serverPort){
 
+    struct hostent *hostinfo = NULL;
+    /*socketTab->clients[0] = {0};
+    socketTab->clients[1] = {0};
+    socketTab->clients[2] = {0};
+    socketTab->clients[3] = {0};
+    socketTab->serverAddr = {0};*/
 
-        printf("\n\n%s:\n",theGame->players[j].name);
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("_");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_SQUARE_BY_PLAYER; ++i) {
-            printf("___");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("__");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("_");
-        }
-        printf("\n");
-
-
-
-        printf("|");
-        for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-            printf("%c",(char)(theGame->players[j].stable[i].position!=-1?'-':48+theGame->players[j].stable[i].id));//48 = ASCII code of '0'
-        }
-        printf("|\t\t");
-
-        for (i = j*NB_SQUARE_BY_PLAYER; i < (j+1)*NB_SQUARE_BY_PLAYER; ++i) {
-            printf("|%c%c",(char)(theGame->board[i].id_player==-1?'-':48+theGame->board[i].id_player), (char)theGame->board[i].id_horse==-1?'-':48+theGame->board[i].id_horse);//48 = ASCII code of '0'
-        }
-        printf("|\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("|%c",(char)theGame->board[NB_PLAYER*NB_SQUARE_BY_PLAYER+j*NB_STAIRS_BY_PLAYER+i].id_horse==-1?'-':48+theGame->board[NB_PLAYER*NB_SQUARE_BY_PLAYER+i].id_horse);//48 = ASCII code of '0'
-        }
-        printf("|\t\t|");
-        for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-            printf("%c",(char)(theGame->players[j].stable[i].position!=-2?'-':48+theGame->players[j].stable[i].id));//48 = ASCII code of '0'
-        }
-        printf("|\n");
-
-
-
-
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_SQUARE_BY_PLAYER; ++i) {
-            printf("¯¯¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_STAIRS_BY_PLAYER; ++i) {
-            printf("¯¯");
-        }
-        printf("\t\t");
-        for (i = 0; i < NB_HORSE_BY_PLAYER+2; ++i) {
-            printf("¯");
-        }
-        printf("\n");
+#ifdef WIN32
+    WSADATA wsa;
+    int err = WSAStartup(MAKEWORD(2, 2), &wsa);
+    if(err < 0)
+    {
+        puts("WSAStartup failed !");
+        exit(EXIT_FAILURE);
     }
+#endif
+    if((socketTab->serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+    {
+        perror("socket()");
+        exit(errno);
+    }
+
+
+    socketTab->serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* nous sommes un serveur, nous acceptons n'importe quelle adresse */
+
+    socketTab->serverAddr.sin_family = AF_INET;
+
+    socketTab->serverAddr.sin_port = htons((u_short) atoi(serverPort));
+
+    if(bind (socketTab->serverSocket, (SOCKADDR *) &socketTab->serverAddr, sizeof (SOCKADDR_IN)) == SOCKET_ERROR)
+    {
+        perror("bind()");
+        exit(errno);
+    }
+
+    if(listen(socketTab->serverSocket, 5) == SOCKET_ERROR)
+    {
+        perror("listen()");
+        exit(errno);
+    }
+
 }
 
-void displayPlayer(player_t *player) {
-    int i, j,k ,l;
-    printf("\n");
-    printf("id:\t\t\t%d\t\t\t\t",player->id);
-    printf("\n");
-    printf("name:\t%s\t\t\t\t",player->name);
-    printf("\n");
-    printf("nb coup:\t%d\t\t\t\t",player->nb_coups);
-    printf("\n");
-    printf("has ended:\t%d\t\t\t\t",player->has_ended);
-    printf("\n");
-    printf("stable:\t\t\t\t\t\t");
-    printf("\n");
-    for (i = 0; i < NB_HORSE_BY_PLAYER; ++i) {
-        printf("\tid:\t\t%d\t\t\t\t",player->stable[i].id);
-        printf("\n");
-        printf("\tpos:\t%d\t\t\t\t",player->stable[i].position);
-        printf("\n\n");
+void acceptClient(io_config_t* configSocket, int id){
+
+    if( id >= sizeof(configSocket->clients) && accept(configSocket->serverSocket, (SOCKADDR *) &configSocket->clients[id], sizeof(SOCKADDR_IN)) == -1){
+        perror("accept ()");
+        closeIO(configSocket);
+        exit(errno);
     }
-    printf("\n");
-
-}
-void initIO(pipes_t* myPipes, int pipeForChildren[4][4], int pipeForChildrenToClose[4][4]){
-    int i=0;
-    int P0ToP1[2];
-    int P1ToP2[2];
-    int P2ToP3[2];
-    int P3ToP0[2];
-
-    int PxToServer[2];
-
-    int serverToP0[2];
-    int serverToP1[2];
-    int serverToP2[2];
-    int serverToP3[2];
-
-
-    i += pipe(P0ToP1);
-    i += pipe(P1ToP2);
-    i += pipe(P2ToP3);
-    i += pipe(P3ToP0);
-    i += pipe(PxToServer);
-    i += pipe(serverToP0);
-    i += pipe(serverToP1);
-    i += pipe(serverToP2);
-    i += pipe(serverToP3);
-
-
-    myPipes->inPx = PxToServer[0];
-    myPipes->outPx[0] = serverToP0[1];
-    myPipes->outPx[1] = serverToP1[1];
-    myPipes->outPx[2] = serverToP2[1];
-    myPipes->outPx[3] = serverToP3[1];
-
-    //pipe[0] for reading, pipe[1] for writing
-    pipeForChildren[0][0] = P3ToP0[0];      //P0 inLast
-    pipeForChildren[0][1] = serverToP0[0];  //P0 inServer
-    pipeForChildren[0][2] = P0ToP1[1];      //P0 outNext
-    pipeForChildren[0][3] = PxToServer[1];  //P0 outServer
-
-    pipeForChildren[1][0] = P0ToP1[0];      //P1 inLast
-    pipeForChildren[1][1] = serverToP1[0];  //P1 inServer
-    pipeForChildren[1][2] = P1ToP2[1];      //P1 outNext
-    pipeForChildren[1][3] = PxToServer[1];  //P1 outServer
-
-    pipeForChildren[2][0] = P1ToP2[0];      //P2 inLast
-    pipeForChildren[2][1] = serverToP2[0];  //P2 inServer
-    pipeForChildren[2][2] = P2ToP3[1];      //P2 outNext
-    pipeForChildren[2][3] = PxToServer[1];  //P2 outServer
-
-    pipeForChildren[3][0] = P2ToP3[0];      //P3 inLast
-    pipeForChildren[3][1] = serverToP3[0];  //P3 inServer
-    pipeForChildren[3][2] = P3ToP0[1];      //P3 outNext
-    pipeForChildren[3][3] = PxToServer[1];  //P3 outServer
-
-
-    pipeForChildrenToClose[0][0] = P3ToP0[1];
-    pipeForChildrenToClose[0][1] = serverToP0[1];
-    pipeForChildrenToClose[0][2] = P0ToP1[0];
-    pipeForChildrenToClose[0][3] = PxToServer[0];
-
-    pipeForChildrenToClose[1][0] = P0ToP1[1];
-    pipeForChildrenToClose[1][1] = serverToP1[1];
-    pipeForChildrenToClose[1][2] = P1ToP2[0];
-    pipeForChildrenToClose[1][3] = PxToServer[0];
-
-    pipeForChildrenToClose[2][0] = P1ToP2[1];
-    pipeForChildrenToClose[2][1] = serverToP2[1];
-    pipeForChildrenToClose[2][2] = P2ToP3[0];
-    pipeForChildrenToClose[2][3] = PxToServer[0];
-
-    pipeForChildrenToClose[3][0] = P2ToP3[1];
-    pipeForChildrenToClose[3][1] = serverToP3[1];
-    pipeForChildrenToClose[3][2] = P3ToP0[0];
-    pipeForChildrenToClose[3][3] = PxToServer[0];
 
 }
 
 int sendDiceRoll(int* dice, int fileDescriptor){
     int f, i;
 
-    i = sendMessage(getpid(), DICE_ROLL, fileDescriptor, dice, sizeof(int));
+    //i = sendMessage(getpid(), DICE_ROLL, fileDescriptor, dice, sizeof(int));
 
     return i;
 
 }
 
-void displayBoardFromPlayersArray(player_t *players) {
-
-}
-
 messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor){
 
-    int f, sizeToRead, i=0, temp = 0;
+    int f, sizeToRead = 0, i=0, temp = 0;
     messageInfo_t message;
     message.action = -1;
     message.pid = -1;
@@ -215,11 +101,11 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
 
     return (bytesRead == (sizeOfData + 3* sizeof(int) ) ) -1;//return -1 if error
 }
-int displayError(error_t *error) {
-    if (error->childFuncName !=NULL && error->funcName!=NULL && error->errCode != 0){
-        fprintf(stderr,"\n%s() \t->\t%s() \t->\t %s\n",error->funcName,error->childFuncName, error->msg);
-    } else if (error->errCode!=0){
-        fprintf(stderr,"\n%s() \t-> \t%s\n", error->funcName, error->msg);
-    }
-    return error->errCode;
+
+int closeIO(io_config_t* socketTab){
+    closesocket(socketTab->serverSocket);
+#ifdef WIN32
+    WSACleanup();
+#endif
+    return 0;
 }

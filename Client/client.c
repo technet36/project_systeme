@@ -6,13 +6,12 @@
  */
 #include "client.h"
 
-int initPlayer(int idPlayer, player_t* me){
-    printf("\nHi there new player(%d)\nWhat is your name ? : \n",idPlayer);
-    fflush(0);
-    scanf("%s",me->name);
+
+int initPlayer(player_t* me){
+    askName(me->name);
     int j;
     me->has_ended = false;
-    me->id = idPlayer;
+    me->id = -1;
     me->nb_coups=0;
     for (j = 0; j < NB_HORSE_BY_PLAYER; ++j) {
         me->stable[j].id = j;
@@ -23,30 +22,32 @@ int initPlayer(int idPlayer, player_t* me){
 
 /**
  *
- * @param argc
- * @param argv
- * @return
+ * @param argc has to be 3
+ * @param argv ["client", ip_server, port_server]
  */
 int main( int argc, char* argv[]){
     player_t me;
     player_t* allPlayer;
-    int godFather;
     int temp;
     int error =0;
     messageInfo_t message;
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
-    pipes_PLAYER_t myPipes;
-
-    myPipes.inLast = inLast;
-    myPipes.inServer = inServer;
-    myPipes.outNext = outNext;
-    myPipes.outServer = outServer;
-    godFather = ppid;
+    io_config_t mySockets;
 
 
+    initPlayer(&me);
+
+    initIO_client(argv[1], argv[2], &mySockets);// -> init in/out server
+
+
+    //wait for server's response with id and the other player's sockets
+
+/*
     initPlayer(id, &me);
 
     sendPlayerToServer(&me, myPipes.outServer);
+
+
     do{
         message = waitForMessage(data, myPipes.inLast, myPipes.inServer);
         if (message.action == NEW_POS){//data is the array of all players
@@ -75,6 +76,7 @@ int main( int argc, char* argv[]){
 
         }
     }while (!me.has_ended && error ==0);
+*/
 
     printf("\n\n The end\n\n");
     return 0;

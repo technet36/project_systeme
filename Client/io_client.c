@@ -5,6 +5,8 @@
 #include "io_client.h"
 
 
+/*
+
 int sendHorseServer(int* idHorse, int fileDescriptor){
     int i;
 
@@ -64,4 +66,54 @@ messageInfo_t waitForMessage(void* data, int fileDescriptorSibling, int fileDesc
     if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
 
     return message;
+}
+*/
+int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
+
+    struct hostent *serverInfo = NULL;
+
+#ifdef WIN32
+    WSADATA wsa;
+    int err = WSAStartup(MAKEWORD(2, 2), &wsa);
+    if(err < 0)
+    {
+        puts("WSAStartup failed !");
+        exit(EXIT_FAILURE);
+    }
+#endif
+
+
+    if((sockTab->mySocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+    {
+        perror("socket()");
+        exit(errno);
+    }
+
+    serverInfo = gethostbyname(serverName); /* on récupère les informations de l'hôte auquel on veut se connecter */
+    if (serverInfo == NULL) /* l'hôte n'existe pas */
+    {
+        fprintf (stderr, "Unknown host %s.\n", serverName);
+        exit(EXIT_FAILURE);
+    }
+
+    sockTab->serverAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
+    sockTab->serverAddr.sin_port = htons((u_short) atoi(serverPort)); /* on utilise htons pour le serverPort */
+    sockTab->serverAddr.sin_family = AF_INET;
+
+    if(connect(sockTab->mySocket,(SOCKADDR *) &sockTab->serverAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)
+    {
+        perror("connect()");
+        closeSocket(sockTab);
+        exit(errno);
+    }
+
+    return 0;
+}
+
+void closeSocket(io_config_t* mySockets) {
+
+    closesocket(mySockets->mySocket);
+#ifdef WIN32
+    WSACleanup();
+#endif
 }

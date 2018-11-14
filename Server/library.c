@@ -46,7 +46,7 @@ void copyPlayer(player_t *players, player_t* playerSrc) {
 
 int goToSquare(game_t *theGame, int idPlayer, int idHorse, int newPosition) {
     if ( newPosition >= NB_SQUARE_BOARD || newPosition < -2 || idPlayer<0 || idPlayer >= NB_PLAYER || idHorse < 0 || idHorse >= NB_HORSE_BY_PLAYER ){//bad arguments
-        error_t newError;
+        my_error_t newError;
         newError.funcName = __func__;
         newError.errCode = 1;
         newError.childFuncName = NULL;
@@ -181,7 +181,7 @@ int play(game_t* theGame, int idPlayer, int idHorse, int dice) {
     }
 }
 
-int testWhereHorseShouldBe(game_t *testGame,int idPlayer, int idHorse, int position, error_t* error){
+int testWhereHorseShouldBe(game_t *testGame,int idPlayer, int idHorse, int position, my_error_t* error){
     error->childFuncName = __func__;
     error->errCode = 0;
     int i;
@@ -213,7 +213,7 @@ int testWhereHorseShouldBe(game_t *testGame,int idPlayer, int idHorse, int posit
 }
 
 //deprecated
-int testInit( error_t* error){
+int testInit( my_error_t* error){
     game_t game;
     init(&game);
     int i,j,temp=0;
@@ -230,7 +230,7 @@ int testInit( error_t* error){
 }
 
 //deprecated
-int testStart( error_t* error){
+int testStart( my_error_t* error){
     game_t game;
     init(&game);
     error->funcName = __func__;
@@ -271,7 +271,7 @@ int testStart( error_t* error){
 }
 
 //deprecated
-int testObstacle( error_t* error){
+int testObstacle( my_error_t* error){
     game_t game;
     init(&game);
     error->funcName = __func__;
@@ -349,7 +349,7 @@ int testObstacle( error_t* error){
  */
 int test() {
     int errorCount = 0, errorCountTemp=0;
-    error_t newError;
+    my_error_t newError;
 
     if ((errorCountTemp = testInit(&newError)) == 0){
         fprintf(stdout,"\n\n====================================================\n\t\t\ttestInit() pass  :: total error : %d\n====================================================\n",errorCount);

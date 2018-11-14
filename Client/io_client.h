@@ -4,24 +4,47 @@
 
 #ifndef PROJECT_SYSTEME_IO_CLIENT_H
 #define PROJECT_SYSTEME_IO_CLIENT_H
+#define WIN
 
-#include <sys/select.h>
-#include <sys/time.h>
-#include <sys/types.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <sys/fcntl.h>
+#ifdef WIN /* si vous êtes sous Windows */
+
+#include <winsock2.h>
+
+#elif defined (linux) /* si vous êtes sous Linux */
+
+//#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h> /* close */
+#include <netdb.h> /* gethostbyname */
+#define INVALID_SOCKET -1
+#define SOCKET_ERROR -1
+#define closesocket(s) close(s)
+typedef int SOCKET;
+typedef struct sockaddr_in SOCKADDR_IN;
+typedef struct sockaddr SOCKADDR;
+typedef struct in_addr IN_ADDR;
+
+#else /* sinon vous êtes sur une plateforme non supportée */
+
+#error not defined for this platform
+
+#endif
 
 #include "../structures.h"
+#include "../display.h"
+#include <zconf.h>
 
 
-#define  max(a,b) ({(a)>(b)?(a):(b);})
+//#define  max(a,b) ({(a)>(b)?(a):(b);})
+
 
 typedef struct {
-    int inLast, inServer, outNext, outServer;
-}pipes_PLAYER_t;
+    SOCKET mySocket;
+    SOCKADDR_IN serverAddr, myAddr, nextAddr, lastAddr;
+} io_config_t;
 
 
 typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION_T;
@@ -31,6 +54,7 @@ typedef struct {
     int action;
 }messageInfo_t;
 
+/*
 
 int sendHorseServer(int* idHorse, int fileDescriptor);
 
@@ -41,4 +65,32 @@ int sendMessageToNextPlayer(int pid,player_t* playerArray, int fileDescriptor);
 int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
 
 messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);
+*/
+int initIO_client( char* ip, char* port, io_config_t* sock);
+
+void closeSocket(io_config_t* mySockets);
+
+/*
+ * initSocket()
+ *
+ * sentMeToServer()
+ *
+ * getPlayers()
+ *
+ * initPlayers()
+ *
+ * waitForMessage()
+ *
+ * sendToNextPlayer()
+ *
+ * sendToServer()
+ *
+ * endTurn()
+ *
+ * sentHorseServer()
+ *
+ * closeSocket()
+ */
+
+
 #endif //PROJECT_SYSTEME_IO_CLIENT_H
