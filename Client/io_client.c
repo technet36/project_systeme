@@ -88,8 +88,10 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
         perror("socket()");
         exit(errno);
     }
+    //bind(sockTab->mySocket, (SOCKADDR *) , sizeof(SOCKADDR));
 
     serverInfo = gethostbyname(serverName); /* on récupère les informations de l'hôte auquel on veut se connecter */
+    //printf()
     if (serverInfo == NULL) /* l'hôte n'existe pas */
     {
         fprintf (stderr, "Unknown host %s.\n", serverName);
@@ -97,7 +99,7 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
     }
 
     sockTab->serverAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
-    sockTab->serverAddr.sin_port = htons((u_short) atoi(serverPort)); /* on utilise htons pour le serverPort */
+    sockTab->serverAddr.sin_port = htons(15000); /* on utilise htons pour le serverPort */
     sockTab->serverAddr.sin_family = AF_INET;
 
     if(connect(sockTab->mySocket,(SOCKADDR *) &sockTab->serverAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)

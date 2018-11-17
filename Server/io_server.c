@@ -23,25 +23,28 @@ void initIO_server(io_config_t* socketTab, char* serverPort){
         exit(EXIT_FAILURE);
     }
 #endif
-    if((socketTab->serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+    printf("\nsocket()");
+    if( (socketTab->serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
         perror("socket()");
         exit(errno);
     }
 
 
-    socketTab->serverAddr.sin_addr.s_addr = htonl(INADDR_ANY); /* nous sommes un serveur, nous acceptons n'importe quelle adresse */
+    socketTab->serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
 
     socketTab->serverAddr.sin_family = AF_INET;
 
-    socketTab->serverAddr.sin_port = htons((u_short) atoi(serverPort));
+    socketTab->serverAddr.sin_port = htons(15000);
+    printf("\nbind()");
 
-    if(bind (socketTab->serverSocket, (SOCKADDR *) &socketTab->serverAddr, sizeof (SOCKADDR_IN)) == SOCKET_ERROR)
+    if( bind(socketTab->serverSocket, (SOCKADDR *) &socketTab->serverAddr, sizeof (SOCKADDR)) == SOCKET_ERROR)
     {
         perror("bind()");
         exit(errno);
     }
 
+    printf("\nlisten()");
     if(listen(socketTab->serverSocket, 5) == SOCKET_ERROR)
     {
         perror("listen()");
@@ -51,13 +54,16 @@ void initIO_server(io_config_t* socketTab, char* serverPort){
 }
 
 void acceptClient(io_config_t* configSocket, int id){
-
-    if( id >= sizeof(configSocket->clients) && accept(configSocket->serverSocket, (SOCKADDR *) &configSocket->clients[id], sizeof(SOCKADDR_IN)) == -1){
+    printf("\nacceptClient()");
+    SOCKADDR_IN csin = {0};
+    int addrSize = sizeof(csin);
+int temp;
+    if( id < 0 || id >= sizeof(configSocket->clients)
+        || -1 == ( configSocket->clients[id] = accept(configSocket->serverSocket, (SOCKADDR *) &csin, &addrSize ) ) ){
         perror("accept ()");
         closeIO(configSocket);
         exit(errno);
     }
-
 }
 
 int sendDiceRoll(int* dice, int fileDescriptor){

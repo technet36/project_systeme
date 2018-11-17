@@ -45,7 +45,7 @@ typedef struct {
 }messageInfo_t;
 
 typedef struct {
-    SOCKADDR_IN clients[4];
+    SOCKET clients[4];
     SOCKADDR_IN serverAddr;
     SOCKET serverSocket;
 } io_config_t;

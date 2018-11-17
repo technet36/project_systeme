@@ -31,6 +31,7 @@ int main(int argc, char* argv[]) {
 
     //wait for 4 players
     for(i=0;i<NB_PLAYER;++i){
+        printf("\nWaiting for client connect(%d)",i);
         acceptClient(&myIOConfig,i);
     }
     /*
