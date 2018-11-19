@@ -42,8 +42,7 @@ typedef struct in_addr IN_ADDR;
 
 
 typedef struct {
-    SOCKET mySocket;
-    SOCKADDR_IN serverAddr, myAddr, nextAddr, lastAddr;
+    SOCKET meToServer, meToNext, meToLast;
 } io_config_t;
 
 

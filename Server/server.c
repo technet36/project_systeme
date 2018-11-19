@@ -18,7 +18,6 @@ int main(int argc, char* argv[]) {
 
     int i=0, j, roll, nextPlayer = 0, input, temp = 0, myAction, serverPid = getpid(), lastPlayer = 0;
 
-    printf("working");
 
     game_t theGame;
     nextPlayer = init(&theGame);
@@ -27,16 +26,24 @@ int main(int argc, char* argv[]) {
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     io_config_t myIOConfig;
 
-    initIO_server(&myIOConfig, "15000");
+    initIO_server(&myIOConfig, "2009");
 
     //wait for 4 players
     for(i=0;i<NB_PLAYER;++i){
         printf("\nWaiting for client connect(%d)",i);
         acceptClient(&myIOConfig,i);
     }
-    /*
+
 
     i=0;
+    for(i=0;i<NB_PLAYER;++i){
+        //send (lastaddr)
+    }
+
+//wait for playerInfos
+
+
+    /*
     while (i<NB_PLAYER){
         message = waitForPlayerMessageToServer(data, myPipes.inPx);
         if(message.action == NEW_PLAYER){
@@ -45,7 +52,7 @@ int main(int argc, char* argv[]) {
             ++i;
         }
     }
-
+/*
     //broadcast needed sockets
     broadCastPlayerArray(theGame.players, myPipes.outPx[nextPlayer]);
     displayGame(&theGame);
@@ -67,5 +74,6 @@ int main(int argc, char* argv[]) {
 */
     displayGame(&theGame);
 
+    closeIO(&myIOConfig);
     return 0;
 }

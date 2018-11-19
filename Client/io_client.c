@@ -71,7 +71,7 @@ messageInfo_t waitForMessage(void* data, int fileDescriptorSibling, int fileDesc
 int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 
     struct hostent *serverInfo = NULL;
-
+    SOCKADDR_IN tempAddr;
 #ifdef WIN32
     WSADATA wsa;
     int err = WSAStartup(MAKEWORD(2, 2), &wsa);
@@ -83,26 +83,26 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 #endif
 
 
-    if((sockTab->mySocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
+    if((sockTab->meToServer = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
         perror("socket()");
         exit(errno);
     }
-    //bind(sockTab->mySocket, (SOCKADDR *) , sizeof(SOCKADDR));
 
     serverInfo = gethostbyname(serverName); /* on récupère les informations de l'hôte auquel on veut se connecter */
-    //printf()
+
+
     if (serverInfo == NULL) /* l'hôte n'existe pas */
     {
         fprintf (stderr, "Unknown host %s.\n", serverName);
         exit(EXIT_FAILURE);
     }
 
-    sockTab->serverAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
-    sockTab->serverAddr.sin_port = htons(15000); /* on utilise htons pour le serverPort */
-    sockTab->serverAddr.sin_family = AF_INET;
+    tempAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
+    tempAddr.sin_port = htons(atoi(serverPort)); /* on utilise htons pour le serverPort */
+    tempAddr.sin_family = AF_INET;
 
-    if(connect(sockTab->mySocket,(SOCKADDR *) &sockTab->serverAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)
+    if(connect(sockTab->meToServer,(SOCKADDR *) &tempAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)
     {
         perror("connect()");
         closeSocket(sockTab);
@@ -114,7 +114,9 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 
 void closeSocket(io_config_t* mySockets) {
 
-    closesocket(mySockets->mySocket);
+    closesocket(mySockets->meToServer);
+    closesocket(mySockets->meToLast);
+    closesocket(mySockets->meToNext);
 #ifdef WIN32
     WSACleanup();
 #endif

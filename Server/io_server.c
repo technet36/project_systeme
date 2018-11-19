@@ -7,7 +7,8 @@
 
 void initIO_server(io_config_t* socketTab, char* serverPort){
 
-    struct hostent *hostinfo = NULL;
+    //struct hostent *hostinfo = NULL;
+    SOCKADDR_IN tempAddr;
     /*socketTab->clients[0] = {0};
     socketTab->clients[1] = {0};
     socketTab->clients[2] = {0};
@@ -23,7 +24,6 @@ void initIO_server(io_config_t* socketTab, char* serverPort){
         exit(EXIT_FAILURE);
     }
 #endif
-    printf("\nsocket()");
     if( (socketTab->serverSocket = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     {
         perror("socket()");
@@ -31,20 +31,16 @@ void initIO_server(io_config_t* socketTab, char* serverPort){
     }
 
 
-    socketTab->serverAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    tempAddr.sin_addr.s_addr = htonl(INADDR_ANY);
+    tempAddr.sin_family = AF_INET;
+    tempAddr.sin_port = htons(atoi(serverPort));
 
-    socketTab->serverAddr.sin_family = AF_INET;
-
-    socketTab->serverAddr.sin_port = htons(15000);
-    printf("\nbind()");
-
-    if( bind(socketTab->serverSocket, (SOCKADDR *) &socketTab->serverAddr, sizeof (SOCKADDR)) == SOCKET_ERROR)
+    if( bind(socketTab->serverSocket, (SOCKADDR *) &tempAddr, sizeof (SOCKADDR)) == SOCKET_ERROR)
     {
         perror("bind()");
         exit(errno);
     }
 
-    printf("\nlisten()");
     if(listen(socketTab->serverSocket, 5) == SOCKET_ERROR)
     {
         perror("listen()");
@@ -70,7 +66,7 @@ int sendDiceRoll(int* dice, int fileDescriptor){
     int f, i;
 
     //i = sendMessage(getpid(), DICE_ROLL, fileDescriptor, dice, sizeof(int));
-
+    //todo : test
     return i;
 
 }
@@ -97,8 +93,9 @@ int broadCastPlayerArray(player_t* playerArray, int fileDescriptor) {
 
 }
 
-int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData) {
+int sendMessage(int id, int action, int fileDescriptor, void* data, int sizeOfData) {
 
+    int pid = 0;
     int bytesRead =0;
     bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
     bytesRead += write(fileDescriptor, &pid, sizeof(int));
@@ -110,6 +107,10 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
 
 int closeIO(io_config_t* socketTab){
     closesocket(socketTab->serverSocket);
+    closesocket(socketTab->clients[0]);
+    closesocket(socketTab->clients[1]);
+    closesocket(socketTab->clients[2]);
+    closesocket(socketTab->clients[3]);
 #ifdef WIN32
     WSACleanup();
 #endif

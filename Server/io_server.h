@@ -46,7 +46,6 @@ typedef struct {
 
 typedef struct {
     SOCKET clients[4];
-    SOCKADDR_IN serverAddr;
     SOCKET serverSocket;
 } io_config_t;
 
