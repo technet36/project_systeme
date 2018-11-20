@@ -5,6 +5,7 @@
  *
  */
 #include "client.h"
+//#include <cygwin/in.h>
 
 
 int initPlayer(player_t* me){
@@ -28,9 +29,9 @@ int initPlayer(player_t* me){
 int main( int argc, char* argv[]){
     player_t me;
     player_t* allPlayer;
-    int temp;
+    //nt temp;
     int error =0;
-    messageInfo_t message;
+    //messageInfo_t message;
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     io_config_t mySockets;
 
@@ -41,7 +42,7 @@ int main( int argc, char* argv[]){
 
 
     //wait for server's response with id and the other player's sockets
-
+    waitForMessage(data, &mySockets);
 /*
     initPlayer(id, &me);
 
@@ -77,7 +78,9 @@ int main( int argc, char* argv[]){
         }
     }while (!me.has_ended && error ==0);
 */
+    sleep(50);
 
+    closeSocket(&mySockets);
     printf("\n\n The end\n\n");
     return 0;
 }

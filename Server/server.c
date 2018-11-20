@@ -26,7 +26,7 @@ int main(int argc, char* argv[]) {
     void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     io_config_t myIOConfig;
 
-    initIO_server(&myIOConfig, "2009");
+    initIO_server(&myIOConfig, argv[2]);
 
     //wait for 4 players
     for(i=0;i<NB_PLAYER;++i){
@@ -34,10 +34,12 @@ int main(int argc, char* argv[]) {
         acceptClient(&myIOConfig,i);
     }
 
-
     i=0;
     for(i=0;i<NB_PLAYER;++i){
         //send (lastaddr)
+        printf("\nsendLastToOne(%d)",i);
+        sendLastToOne(i,&myIOConfig);
+
     }
 
 //wait for playerInfos

@@ -38,7 +38,7 @@ typedef struct in_addr IN_ADDR;
 #include <zconf.h>
 
 
-//#define  max(a,b) ({(a)>(b)?(a):(b);})
+#define  max(a,b) ({(a)>(b)?(a):(b);})
 
 
 typedef struct {
@@ -49,10 +49,11 @@ typedef struct {
 typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION_T;
 
 typedef struct {
-    int pid;
-    int action;
-}messageInfo_t;
-
+    int sizeOfData;
+    int id;
+    ACTION_T action;
+    void* data;
+}datagram_t;
 /*
 
 int sendHorseServer(int* idHorse, int fileDescriptor);
@@ -66,6 +67,8 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
 messageInfo_t waitForMessage(void* data, int fileDescriptorA, int fileDescriptorB);
 */
 int initIO_client( char* ip, char* port, io_config_t* sock);
+
+datagram_t waitForMessage(void* data, io_config_t* myConfig);
 
 void closeSocket(io_config_t* mySockets);
 

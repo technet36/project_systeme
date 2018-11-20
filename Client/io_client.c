@@ -40,34 +40,48 @@ int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfD
     return (bytesRead == (sizeOfData + 3* sizeof(int) ) ) -1;//return -1 if error
 }
 
-messageInfo_t waitForMessage(void* data, int fileDescriptorSibling, int fileDescriptorServer) {
-    int fileToRead = fileDescriptorServer, sizeToRead, temp = 0, i=0;
+*/
+
+
+datagram_t waitForMessage(void* data, io_config_t* myConfig) {
+    int sizeToRead=0, i=0;
+    char* tempRead;
+    tempRead = malloc(sizeof(int));
     struct timeval tv;
-    messageInfo_t message;
-    message.action = -1;
-    message.pid = -1;
     tv.tv_sec = 3;
     tv.tv_usec =0;
     fd_set fileDescriptorSet;
+    SOCKET socketToRead;
+    datagram_t message;
 
     FD_ZERO( &fileDescriptorSet);
-    FD_SET( fileDescriptorSibling, &fileDescriptorSet);
-    FD_SET( fileDescriptorServer, &fileDescriptorSet);
+    FD_SET( myConfig->meToLast, &fileDescriptorSet);
+    FD_SET( myConfig->meToServer, &fileDescriptorSet);
 
-    temp = select(max(fileDescriptorServer,fileDescriptorSibling)+1, &fileDescriptorSet, NULL, NULL, &tv);
+    select((int)max(myConfig->meToLast,myConfig->meToServer)+1, &fileDescriptorSet, NULL, NULL, (PTIMEVAL) &tv);
 
-    fileToRead = FD_ISSET(fileDescriptorServer, &fileDescriptorSet)? fileDescriptorServer : fileDescriptorSibling;
+    socketToRead = FD_ISSET(myConfig->meToLast, &fileDescriptorSet)? myConfig->meToLast : myConfig->meToServer;
 
-    i += read(fileToRead, &sizeToRead, sizeof(int) );
-    i += read(fileToRead, &message.pid, sizeof(int));
-    i += read(fileToRead, &message.action, sizeof(int));
-    i += read(fileToRead, data, sizeToRead);
+    recv(socketToRead, tempRead, sizeof(int),0);
+    message.sizeOfData = atoi(tempRead);
 
-    if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
+    recv(socketToRead,tempRead , sizeof(int),0);
+    message.id = atoi(tempRead);
 
+    recv(socketToRead,tempRead , sizeof(int),0);
+    message.action = (ACTION_T) atoi(tempRead);
+
+    recv(socketToRead, data, message.sizeOfData,0);
+    message.data = malloc((size_t) sizeToRead);
+    message.data = data;
+
+    //if (message.pid == getpid() && message.action == NEW_POS) message.action = MSG_LOOPBACK;
+
+    SOCKADDR_IN* temp = (SOCKADDR_IN *) data;
+    printf("\naddr: O port: %d",temp->sin_port);
     return message;
 }
-*/
+
 int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 
     struct hostent *serverInfo = NULL;
@@ -97,6 +111,7 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
         fprintf (stderr, "Unknown host %s.\n", serverName);
         exit(EXIT_FAILURE);
     }
+    printf("\nPort : %s",serverPort);
 
     tempAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
     tempAddr.sin_port = htons(atoi(serverPort)); /* on utilise htons pour le serverPort */
@@ -111,6 +126,8 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 
     return 0;
 }
+
+//int connectToLast(SOCKADDR* lastAddr, ){}
 
 void closeSocket(io_config_t* mySockets) {
 

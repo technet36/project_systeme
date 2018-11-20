@@ -37,7 +37,7 @@ typedef struct in_addr IN_ADDR;
 #include "../display.h"
 #include <zconf.h>
 
-typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK }ACTION_T;
+typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK, ADDRESS_LAST }ACTION_T;
 
 typedef struct {
     int pid;
@@ -49,8 +49,17 @@ typedef struct {
     SOCKET serverSocket;
 } io_config_t;
 
+typedef struct {
+    int sizeOfData;
+    int id;
+    ACTION_T action;
+    void* data;
+}datagram_t;
+
 
 int closeIO(io_config_t* config);
+
+void createServerAndListen(io_config_t* io_config, char* port);
 
 void initIO_server(io_config_t* io_config, char* port);
 
@@ -60,8 +69,10 @@ int sendDiceRoll(int* dice, int fileDescriptor);
 
 messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor);
 
-int sendMessage(int pid, int action, int fileDescriptor, void* data, int sizeOfData);
+int sendMessage(int id, ACTION_T action, io_config_t* socketTab, void* data, int sizeOfData);
 
 int broadCastPlayerArray(player_t* playerArray, int fileDescriptor);
+
+void sendLastToOne(int idReceiver, io_config_t* sockTab);
 
 #endif //PROJECT_SYSTEME_IO_SERVER_H
