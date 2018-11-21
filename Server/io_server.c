@@ -27,25 +27,30 @@ void initIO_server(io_config_t* socketTab, char* serverPort){
 
     if( bind(socketTab->serverSocket, (SOCKADDR *) &tempAddr, sizeof (SOCKADDR)) == SOCKET_ERROR){
         perror("bind()");
+        closeIO(socketTab);
         exit(errno);
     }
     if(listen(socketTab->serverSocket, 5) == SOCKET_ERROR){
         perror("listen()");
+        closeIO(socketTab);
         exit(errno);
     }
 
 }
 
-void createServerAndListen(io_config_t* socketTab, char* serverPort){
-}
-
-void sendLastToOne(int idReceiver, io_config_t* sockTab){
+int sendLastToOne(int idReceiver, io_config_t* sockTab){
+    datagram_t datagram;
     SOCKADDR addrToSend;
     int sockLen;
     int idLast = ( idReceiver + NB_PLAYER - 1)%NB_PLAYER;
     getpeername(sockTab->clients[idLast], &addrToSend, &sockLen );
-    sendMessage(idReceiver, ADDRESS_LAST, sockTab, &addrToSend, sockLen);
 
+    datagram.action = ADDRESS_LAST;
+    datagram.id = idReceiver;
+    datagram.sizeOfData = sizeof(SOCKADDR);
+    memcpy(datagram.data,&addrToSend, sizeof(SOCKADDR));
+
+    return sendMessageToClient(sockTab, &datagram);
 }
 
 void acceptClient(io_config_t* configSocket, int id){
@@ -71,48 +76,87 @@ int sendDiceRoll(int* dice, int fileDescriptor){
 
 }
 
-messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor){
-
-    int f, sizeToRead = 0, i=0, temp = 0;
-    messageInfo_t message;
-    message.action = -1;
-    message.pid = -1;
-
-    i += read(fileDescriptor,&sizeToRead, sizeof(int));
-    i += read(fileDescriptor, &message.pid, sizeof(int));
-    i += read(fileDescriptor, &message.action, sizeof(int));
-    i += read(fileDescriptor, data, sizeToRead);
-
-    return message;
+player_t waitForPlayerConfig(io_config_t* myConfig){
+    datagram_t message;
+    int i = 0, errCode;
+    for(i=0;(errCode = receiveMessageFromClient(&message,myConfig)) != 0 && i < 4;++i );
+    if (i > 3 && errCode==0 && message.action == NEW_PLAYER) {
+        return *(player_t *) message.data;
+    } else {
+        return (player_t) {-1};
+    }
 }
-
+/*
 int broadCastPlayerArray(player_t* playerArray, int fileDescriptor) {
     int f, i;
-    i = sendMessage(getpid(), NEW_POS, fileDescriptor, playerArray, sizeof(player_t) * NB_PLAYER);
+    //i = sendMessage(getpid(), NEW_POS, fileDescriptor, playerArray, sizeof(player_t) * NB_PLAYER);
     return (i== sizeof(player_t)*NB_PLAYER*NB_PLAYER)-1;
+}*/
 
+/**
+ * @param datagram empty
+ * @param ioConf with array of clients
+ * @return 0 on success
+ */
+int receiveMessageFromClient(datagram_t* datagram, io_config_t* ioConf){
+    int i,bytesRead = 0;
+    struct timeval tv;
+    tv.tv_sec = 3;
+    tv.tv_usec =0;
+    fd_set fileDescriptorSet;
+    SOCKET socketToRead = 0;
+    char* tempRead;
+    tempRead = malloc(sizeof(int));
+
+    FD_ZERO( &fileDescriptorSet);
+
+    for (i = 0; i < NB_PLAYER; ++i) {
+        FD_SET( ioConf->clients[i], &fileDescriptorSet);
+    }
+
+    // todo: remove max4 and do a function using NB_PLAYER
+    if(select((int)max4(ioConf->clients), &fileDescriptorSet, NULL, NULL, (PTIMEVAL) &tv) == -1)
+    {
+        perror("select()");
+        closeIO(ioConf);
+        return -1;
+    }
+
+    for (i = 0; i < NB_PLAYER; ++i) {
+        if (FD_ISSET(ioConf->clients[i], &fileDescriptorSet)) {
+            socketToRead = ioConf->clients[i];
+            i = NB_PLAYER;
+        }
+    }
+
+    bytesRead += recv(socketToRead, tempRead, sizeof(int),0);
+    datagram->sizeOfData = atoi(tempRead);
+
+    bytesRead += recv(socketToRead,tempRead , sizeof(int),0);
+    datagram->id = atoi(tempRead);
+
+    bytesRead += recv(socketToRead,tempRead , sizeof(int),0);
+    datagram->action = (ACTION_T) atoi(tempRead);
+
+    bytesRead += recv(socketToRead, datagram->data, datagram->sizeOfData,0);
+
+    return bytesRead - (datagram->sizeOfData + 3 * sizeof(int));
 }
 
-int sendMessage(int id, ACTION_T action, io_config_t* socketTab, void* data, int sizeOfData) {
-
-    int error, sizeToSend = sizeOfData + 3 * sizeof(int);
-    datagram_t datagram;
-
-    datagram.sizeOfData = sizeOfData;
-    datagram.id = id;
-    datagram.action = action;
-    datagram.data = data;
-    error = send(socketTab->clients[id], &datagram, sizeToSend,0);
-
-    return error;
-    /*
-    bytesRead += write(fileDescriptor,&sizeOfData, sizeof(int));
-    bytesRead += write(fileDescriptor, &pid, sizeof(int));
-    bytesRead += write(fileDescriptor, &action , sizeof(int));
-    bytesRead += write(fileDescriptor, data, sizeOfData);
-
-    return (bytesRead == (sizeOfData + 3* sizeof(int) ) ) -1;//return -1 if error
-*/
+/**
+ * @param socketTab
+ * @param datagram full
+ * @return 0 on success
+ */
+int sendMessageToClient(io_config_t* socketTab, datagram_t* datagram) {
+    int bytesSent, sizeToSend = datagram->sizeOfData + 3 * sizeof(int);
+    bytesSent = send(socketTab->clients[datagram->id], (char*) datagram, sizeToSend,0);
+    if(bytesSent == -1){
+        perror("send()");
+        closeIO(socketTab);
+        return -1;
+    }
+    return bytesSent - (datagram->sizeOfData + 3 * sizeof(int));
 }
 
 int closeIO(io_config_t* socketTab){

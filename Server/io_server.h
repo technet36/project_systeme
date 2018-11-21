@@ -37,42 +37,42 @@ typedef struct in_addr IN_ADDR;
 #include "../display.h"
 #include <zconf.h>
 
+
+
+#define  max(a,b) ({(a)>(b)?(a):(b);})
+#define  max4(a) ({ max ( max((a)[0],(a)[1]), max((a)[2],(a)[3]) ); })
+
 typedef enum {DICE_ROLL, NEW_PLAYER, CHOOSE_HORSE, NEW_POS, MSG_LOOPBACK, ADDRESS_LAST }ACTION_T;
 
 typedef struct {
-    int pid;
-    int action;
-}messageInfo_t;
+    int sizeOfData;
+    int id;
+    ACTION_T action;
+    char data[1024];
+}datagram_t;
 
 typedef struct {
     SOCKET clients[4];
     SOCKET serverSocket;
 } io_config_t;
 
-typedef struct {
-    int sizeOfData;
-    int id;
-    ACTION_T action;
-    void* data;
-}datagram_t;
-
 
 int closeIO(io_config_t* config);
-
-void createServerAndListen(io_config_t* io_config, char* port);
 
 void initIO_server(io_config_t* io_config, char* port);
 
 void acceptClient(io_config_t* configSocket, int id);
 
-int sendDiceRoll(int* dice, int fileDescriptor);
+//int sendDiceRoll(int* dice, int fileDescriptor);
 
-messageInfo_t waitForPlayerMessageToServer(void* data, int fileDescriptor);
+player_t waitForPlayerConfig(io_config_t* myConfig);
 
-int sendMessage(int id, ACTION_T action, io_config_t* socketTab, void* data, int sizeOfData);
+int sendMessageToClient(io_config_t* socketTab, datagram_t* message);
 
-int broadCastPlayerArray(player_t* playerArray, int fileDescriptor);
+int receiveMessageFromClient(datagram_t* message, io_config_t* socket);
 
-void sendLastToOne(int idReceiver, io_config_t* sockTab);
+//int broadCastPlayerArray(player_t* playerArray, int fileDescriptor);
+
+int sendLastToOne(int idReceiver, io_config_t* sockTab);
 
 #endif //PROJECT_SYSTEME_IO_SERVER_H

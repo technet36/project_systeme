@@ -16,17 +16,14 @@
 
 int main(int argc, char* argv[]) {
 
-    int i=0, j, roll, nextPlayer = 0, input, temp = 0, myAction, serverPid = getpid(), lastPlayer = 0;
-
-
+    int i=0, j, roll, nextPlayerId = 0, input, temp = 0, myAction, serverPid = getpid(), lastPlayer = 0;
     game_t theGame;
-    nextPlayer = init(&theGame);
-    messageInfo_t message ;
-    player_t* tempPlayer;
-    void* data = (void*)malloc(sizeof(player_t)*NB_PLAYER);
     io_config_t myIOConfig;
+    player_t tempPlayer = {-1}, emptyPlayer = {0};
 
+    nextPlayerId = init(&theGame);
     initIO_server(&myIOConfig, argv[2]);
+
 
     //wait for 4 players
     for(i=0;i<NB_PLAYER;++i){
@@ -34,7 +31,17 @@ int main(int argc, char* argv[]) {
         acceptClient(&myIOConfig,i);
     }
 
-    i=0;
+    for (i = 0; i < NB_PLAYER; ++i) {
+        printf("\nWait for messages [%d]",i);
+        tempPlayer = waitForPlayerConfig(&myIOConfig);
+        displayPlayer(&tempPlayer);
+        if(tempPlayer.id != -1){
+            displayPlayer(&tempPlayer);
+            copyPlayer(theGame.players,&tempPlayer);
+            printf("\ngot player %d : %s\n",tempPlayer.id,tempPlayer.name);
+        }
+    }
+
     for(i=0;i<NB_PLAYER;++i){
         //send (lastaddr)
         printf("\nsendLastToOne(%d)",i);
@@ -48,11 +55,7 @@ int main(int argc, char* argv[]) {
     /*
     while (i<NB_PLAYER){
         message = waitForPlayerMessageToServer(data, myPipes.inPx);
-        if(message.action == NEW_PLAYER){
-            copyPlayer(theGame.players, data);
-            printf("\ngot player %d : %s\n",((player_t*)data)->id,((player_t*)data)->name);
-            ++i;
-        }
+
     }
 /*
     //broadcast needed sockets

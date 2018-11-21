@@ -70,6 +70,10 @@ int initIO_client( char* ip, char* port, io_config_t* sock);
 
 datagram_t waitForMessage(void* data, io_config_t* myConfig);
 
+int sendMeToServer(player_t* me, io_config_t* socketTab);
+
+int sendMessage(void* data, ACTION_T action,  int sizeOfData, SOCKET dest);
+
 void closeSocket(io_config_t* mySockets);
 
 /*

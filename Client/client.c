@@ -41,6 +41,8 @@ int main( int argc, char* argv[]){
     initIO_client(argv[1], argv[2], &mySockets);// -> init in/out server
 
 
+    sendMeToServer(&me,&mySockets);
+
     //wait for server's response with id and the other player's sockets
     waitForMessage(data, &mySockets);
 /*

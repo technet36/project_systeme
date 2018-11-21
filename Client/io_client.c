@@ -55,10 +55,14 @@ datagram_t waitForMessage(void* data, io_config_t* myConfig) {
     datagram_t message;
 
     FD_ZERO( &fileDescriptorSet);
-    FD_SET( myConfig->meToLast, &fileDescriptorSet);
+    //FD_SET( STDIN_FILENO, &fileDescriptorSet);
     FD_SET( myConfig->meToServer, &fileDescriptorSet);
 
-    select((int)max(myConfig->meToLast,myConfig->meToServer)+1, &fileDescriptorSet, NULL, NULL, (PTIMEVAL) &tv);
+    if(select((int)max(myConfig->meToLast,0)+1, &fileDescriptorSet, NULL, NULL, (PTIMEVAL) &tv) == -1) {
+        perror("select()");
+        closeSocket(myConfig);
+        exit(errno);
+    }
 
     socketToRead = FD_ISSET(myConfig->meToLast, &fileDescriptorSet)? myConfig->meToLast : myConfig->meToServer;
 
@@ -89,42 +93,58 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 #ifdef WIN32
     WSADATA wsa;
     int err = WSAStartup(MAKEWORD(2, 2), &wsa);
-    if(err < 0)
-    {
+    if(err < 0) {
         puts("WSAStartup failed !");
         exit(EXIT_FAILURE);
     }
 #endif
 
-
-    if((sockTab->meToServer = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
-    {
+    if((sockTab->meToServer = socket(AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET) {
         perror("socket()");
         exit(errno);
     }
 
     serverInfo = gethostbyname(serverName); /* on récupère les informations de l'hôte auquel on veut se connecter */
-
-
-    if (serverInfo == NULL) /* l'hôte n'existe pas */
-    {
+    if (serverInfo == NULL) {// l'hôte n'existe pas
         fprintf (stderr, "Unknown host %s.\n", serverName);
+        closeSocket(sockTab);
         exit(EXIT_FAILURE);
     }
-    printf("\nPort : %s",serverPort);
 
     tempAddr.sin_addr = *(IN_ADDR *) serverInfo->h_addr; /* l'adresse se trouve dans le champ h_addr de la structure serverInfo */
     tempAddr.sin_port = htons(atoi(serverPort)); /* on utilise htons pour le serverPort */
     tempAddr.sin_family = AF_INET;
 
-    if(connect(sockTab->meToServer,(SOCKADDR *) &tempAddr, sizeof(SOCKADDR)) == SOCKET_ERROR)
-    {
+    if(connect(sockTab->meToServer,(SOCKADDR *) &tempAddr, sizeof(SOCKADDR)) == SOCKET_ERROR) {
         perror("connect()");
         closeSocket(sockTab);
         exit(errno);
     }
 
     return 0;
+}
+
+int sendMeToServer(player_t* me, io_config_t* socketTab){
+    if (sendMessage(me, NEW_PLAYER, sizeof(player_t),socketTab->meToServer)==-1){
+        closeSocket(socketTab);
+        exit(errno);
+    }
+    return 0;
+}
+
+int sendMessage(void* data, ACTION_T action,  int sizeOfData, SOCKET dest){
+    int error,id=0, sizeToSend = sizeOfData + 3 * sizeof(int);
+    datagram_t datagram;
+
+    datagram.sizeOfData = sizeOfData;
+    datagram.id = id;
+    datagram.action = action;
+    datagram.data = data;
+    error = send(dest, &datagram, sizeToSend,0);
+    if (error==-1){
+        perror("send()");
+    }
+    return error;
 }
 
 //int connectToLast(SOCKADDR* lastAddr, ){}

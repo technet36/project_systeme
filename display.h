@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "structures.h"
+#include <errno.h>
 /**
  * display the game board
  */
