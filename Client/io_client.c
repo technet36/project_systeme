@@ -125,26 +125,26 @@ int initIO_client(char *serverName, char *serverPort, io_config_t* sockTab) {
 }
 
 int sendMeToServer(player_t* me, io_config_t* socketTab){
-    if (sendMessage(me, NEW_PLAYER, sizeof(player_t),socketTab->meToServer)==-1){
-        closeSocket(socketTab);
-        exit(errno);
-    }
-    return 0;
-}
-
-int sendMessage(void* data, ACTION_T action,  int sizeOfData, SOCKET dest){
-    int error,id=0, sizeToSend = sizeOfData + 3 * sizeof(int);
+    int id=0;
     datagram_t datagram;
 
-    datagram.sizeOfData = sizeOfData;
+    datagram.sizeOfData = sizeof(player_t);
     datagram.id = id;
-    datagram.action = action;
-    datagram.data = data;
-    error = send(dest, &datagram, sizeToSend,0);
-    if (error==-1){
+    datagram.action = NEW_PLAYER;
+    datagram.data = me;
+    memcpy(datagram.data, me, sizeof(player_t));
+    return sendMessage( &datagram, socketTab->meToServer);
+}
+
+int sendMessage(datagram_t* datagram, SOCKET dest){
+    int bytesSent, sizeToSend = datagram->sizeOfData + 3 * sizeof(int);
+    displayPlayer(datagram->data);
+    bytesSent= send(dest,(char*) datagram, sizeToSend,0);
+    if (bytesSent==-1 || bytesSent){
         perror("send()");
+        return -1;
     }
-    return error;
+    return bytesSent - (datagram->sizeOfData + 3 * sizeof(int));
 }
 
 //int connectToLast(SOCKADDR* lastAddr, ){}

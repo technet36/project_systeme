@@ -72,7 +72,7 @@ datagram_t waitForMessage(void* data, io_config_t* myConfig);
 
 int sendMeToServer(player_t* me, io_config_t* socketTab);
 
-int sendMessage(void* data, ACTION_T action,  int sizeOfData, SOCKET dest);
+int sendMessage(datagram_t* datagram, SOCKET dest);
 
 void closeSocket(io_config_t* mySockets);
 
